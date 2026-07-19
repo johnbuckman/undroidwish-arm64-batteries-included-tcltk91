@@ -33,3 +33,21 @@
  * calls to this string-based shim (defined+exported by the wish). */
 extern int Uw_TkConfigureWidgetStr(void *interp, void *tkwin,
 	const void *specs, long argc, const char **argv, void *rec, int flags);
+
+/* The wish implements the X region API internally as XCreateRegion() etc.
+ * (Region.c) but only EXPORTS the SdlTk* variants (SdlTkXRegionFuncs).
+ * Map the plain names to the exported ones so extensions that use X regions
+ * (e.g. tkvnc) resolve at load time.  Applied before the SDL Xutil.h decls,
+ * so both the prototypes and the call sites get rewritten. */
+#define XCreateRegion          SdlTkXCreateRegion
+#define XDestroyRegion         SdlTkXDestroyRegion
+#define XSetRegion             SdlTkXSetRegion
+#define XUnionRectWithRegion   SdlTkXUnionRectWithRegion
+#define XIntersectRegion       SdlTkXIntersectRegion
+#define XUnionRegion           SdlTkXUnionRegion
+#define XSubtractRegion        SdlTkXSubtractRegion
+#define XOffsetRegion          SdlTkXOffsetRegion
+#define XPointInRegion         SdlTkXPointInRegion
+#define XRectInRegion          SdlTkXRectInRegion
+#define XEmptyRegion           SdlTkXEmptyRegion
+#define XClipBox               SdlTkXClipBox
