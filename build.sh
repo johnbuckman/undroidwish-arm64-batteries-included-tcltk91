@@ -114,6 +114,10 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
   <key>CFBundleShortVersionString</key><string>9.1</string>
   <key>NSHighResolutionCapable</key><true/>
   <key>NSPrincipalClass</key><string>NSApplication</string>
+  <!-- Required or macOS silently denies CoreBluetooth (the ble battery /
+       bledemo) with no permission prompt and finds 0 devices. -->
+  <key>NSBluetoothAlwaysUsageDescription</key><string>Bluetooth for de1app and BLE Tcl scripts.</string>
+  <key>NSBluetoothPeripheralUsageDescription</key><string>Bluetooth for de1app and BLE Tcl scripts.</string>
 </dict>
 </plist>
 PLIST
