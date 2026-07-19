@@ -21,9 +21,10 @@ rm -f config.cache config.status
 
 # Accept Tcl/Tk 9 in the stubs-init version guards ("8.x" -> "8.5-").
 # Recursive over the whole tree -- sources live in generic/, src/, unix/, etc.
-# \w+ (not just "interp") for the interp arg -- critcl-generated code uses `ip`.
-grep -rlE '(Tcl|Tk)_InitStubs\(\w+, "8\.' . --include='*.c' 2>/dev/null | while read f; do
-  perl -i -pe 's/((?:Tcl|Tk)_InitStubs\(\w+, ")8\.[0-9]+(")/${1}8.5-${2}/g' "$f"
+# \w+ (not just "interp") for the interp arg -- critcl-generated code uses `ip`;
+# \s* tolerates `Tcl_InitStubs (interp, ...)` with a space before the paren.
+grep -rlE '(Tcl|Tk)_InitStubs\s*\(\s*\w+\s*,\s*"8\.' . --include='*.c' 2>/dev/null | while read f; do
+  perl -i -pe 's/((?:Tcl|Tk)_InitStubs\s*\(\s*\w+\s*,\s*")8\.[0-9]+(")/${1}8.5-${2}/g' "$f"
 done
 
 # also catch `..._version = "8.x"` strings used with InitStubs
@@ -31,7 +32,7 @@ grep -rlE '_version[^\n]*=[^\n]*"8\.[0-9]' . --include='*.c' 2>/dev/null | while
 
 # Tcl_PkgRequire[Ex](ip/interp, "Tcl"/"Tk", "8.x", ...) -> "8.5-" (Tcl 9 rejects a
 # bare "8.x" as 8-only; these can be lazy, firing well after load).
-grep -rlE 'Tcl_PkgRequire\w*\(\w+, "T[ck]l?k?", "8\.[0-9]' . --include='*.c' 2>/dev/null | while read f; do perl -i -pe 's/(Tcl_PkgRequire\w*\(\w+, "T[ck]l?k?", ")8\.[0-9]+(")/${1}8.5-${2}/g' "$f"; done
+grep -rlE 'Tcl_PkgRequire\w*\s*\(\s*\w+\s*,\s*"T[ck]l?k?"\s*,\s*"8\.[0-9]' . --include='*.c' 2>/dev/null | while read f; do perl -i -pe 's/(Tcl_PkgRequire\w*\(\w+, "T[ck]l?k?", ")8\.[0-9]+(")/${1}8.5-${2}/g' "$f"; done
 
 # Tk 9: rewrite string-based Tk_ConfigureWidget calls to the wish shim.
 grep -rlE "Tk_ConfigureWidget\(" . --include=*.c 2>/dev/null | while read f; do perl -i -pe "s/\\bTk_ConfigureWidget\\s*\\(/Uw_TkConfigureWidgetStr(/g" "$f"; done
@@ -63,8 +64,12 @@ if [ $CFG -ne 0 ]; then echo "$NAME: CONFIGURE FAILED"; tail -3 "$BASE/${NAME}_c
 # generic in CFLAGS).
 [ -f Makefile ] && perl -i -pe 's{-I/usr/local/include}{}g' Makefile
 
-make -j4 > "$BASE/${NAME}_make.log" 2>&1
-if [ $? -ne 0 ]; then
+# Prefer the TEA `binaries` target (libs only) so a broken docs/test target
+# (e.g. needs doctools for man pages) doesn't fail the whole build.  Fall back
+# to the default target if `binaries` doesn't exist or leaves no dylib.
+make -j4 binaries > "$BASE/${NAME}_make.log" 2>&1
+if ! ls *.dylib >/dev/null 2>&1; then make -j4 >> "$BASE/${NAME}_make.log" 2>&1; fi
+if ! ls *.dylib >/dev/null 2>&1; then
   echo "$NAME: BUILD FAILED"
   grep -iE 'error:|undefined|not found' "$BASE/${NAME}_make.log" | grep -viE 'warning|linker command failed' | head -5
   exit 1

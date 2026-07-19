@@ -1,0 +1,20 @@
+--- /Users/john/iwish/src/androwish/jni/Memchan/generic/memchan.c	2026-06-11 10:26:29
++++ /Users/john/undroidwish91/ext-build/Memchan-src/generic/memchan.c	2026-07-19 19:17:41
+@@ -55,7 +55,7 @@
+ 
+ static int	BlockMode(ClientData instanceData, int mode);
+ 
+-#ifdef TCL_CHANNEL_VERSION_4
++#if defined(TCL_CHANNEL_VERSION_4) || defined(TCL_CHANNEL_VERSION_5)
+ static void	ThreadAction(ClientData instanceData, int action);
+ #endif
+ 
+@@ -342,7 +342,7 @@
+   return toWrite;
+ }
+ 
+-#ifdef TCL_CHANNEL_VERSION_4
++#if defined(TCL_CHANNEL_VERSION_4) || defined(TCL_CHANNEL_VERSION_5)
+ /*
+  *------------------------------------------------------*
+  *

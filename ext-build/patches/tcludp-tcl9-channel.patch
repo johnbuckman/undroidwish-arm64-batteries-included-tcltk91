@@ -1,0 +1,20 @@
+--- /Users/john/iwish/src/androwish/jni/tcludp/generic/udp_tcl.c	2026-06-11 10:26:31
++++ /Users/john/undroidwish91/ext-build/tcludp-src/generic/udp_tcl.c	2026-07-19 19:14:12
+@@ -110,7 +110,7 @@
+  */
+ static Tcl_DriverOutputProc       udpOutput;
+ static Tcl_DriverInputProc        udpInput;
+-static Tcl_DriverCloseProc        udpClose;
++static int udpClose(ClientData instanceData, Tcl_Interp *interp);
+ static Tcl_DriverWatchProc        udpWatch;
+ static Tcl_DriverGetHandleProc    udpGetHandle;
+ static Tcl_DriverSetOptionProc    udpSetOption;
+@@ -192,7 +192,7 @@
+ static Tcl_ChannelType Udp_ChannelType = {
+     "udp",                 /* Type name.                                    */
+     TCL_CHANNEL_VERSION_5, /* V5 channel.                                   */
+-    udpClose,              /* Close channel, clean instance data            */
++    TCL_CLOSE2PROC,              /* Close channel, clean instance data            */
+     udpInput,              /* Handle read request                           */
+     udpOutput,             /* Handle write request                          */
+     NULL,                  /* Move location of access point.      NULL'able */
