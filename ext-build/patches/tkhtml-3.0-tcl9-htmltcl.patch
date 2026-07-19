@@ -1,0 +1,29 @@
+--- /Users/john/iwish/src/androwish/jni/tkhtml/src/htmltcl.c	2026-06-11 10:26:32
++++ /Users/john/undroidwish91/ext-build/tkhtml-src/src/htmltcl.c	2026-07-19 17:58:27
+@@ -39,6 +39,7 @@
+ #include <errno.h>
+ #include <assert.h>
+ #include <stddef.h>
++#include <stdarg.h>
+ #include "html.h"
+ #include "restrack.h"
+ #include "swproc.h"
+@@ -2953,15 +2954,15 @@
+ ){
+     /* Require stubs libraries version 8.4 or greater. */
+ #ifdef USE_TCL_STUBS
+-    if (Tcl_InitStubs(interp, "8.4", 0) == 0) {
++    if (Tcl_InitStubs(interp, "8.5-", 0) == 0) {
+         return TCL_ERROR;
+     }
+-    if (Tk_InitStubs(interp, "8.4", 0) == 0) {
++    if (Tk_InitStubs(interp, "8.5-", 0) == 0) {
+         return TCL_ERROR;
+     }
+ #endif
+ 
+-    if (0 == Tcl_PkgRequire(interp, "Tk", "8.4", 0)) {
++    if (0 == Tcl_PkgRequire(interp, "Tk", "8.5-", 0)) {
+         return TCL_ERROR;
+     }
+     Tcl_PkgProvide(interp, "Tkhtml", "3.0");
