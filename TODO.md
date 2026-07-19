@@ -35,20 +35,26 @@ into `batteries/` (from the AndroWish assets), with a one-line version-guard pat
 | stardom | **tdom** (+BWidget) | ✅ works (0.9.3) |
 | tktable | **Tktable** | ✅ works (2.11) |
 | treectrl | **treectrl** | ✅ works (2.4.2) |
-| iwidgets | **itcl** | ⬜ needs ext |
-| tkchat | **tls** (+deps) | ⬜ needs ext |
+| (iwidgets) | **itcl + itk** | ✅ exts work (4.3.8/4.1.0); no standalone demo |
+| tkchat | **tls** ✅ + **Img** + ~25 tcllib | ⬜ blocked on Img |
+| imgdemo | **Img** (tkimg) | ⬜ needs ext (big — see note) |
 | helpviewer | **tkhtml** | ⬜ needs ext |
-| imgdemo | **Img** | ⬜ needs ext |
 | zinc-widget | **Tkzinc** | ⬜ needs ext |
-| tkpdemo | **tkpath** | ⬜ needs ext |
+| tkpdemo | **tkpath** (+cairo) | ⬜ needs ext |
 | vncviewer | **tkvnc** | ⬜ needs ext |
 | zint | **zint** | ⬜ needs ext |
 | borgdemo | **borg** | ⬜ needs ext |
 | bledemo | **ble** (CoreBluetooth) | ⬜ needs ext |
 
-Getting the ⬜ demos working is exactly §1 above: build/patch each extension for
-Tcl 9.1 arm64. Tractable first targets (recent upstreams already support Tcl 9):
-sqlite3, tdom, itcl, tls.
+**C extensions ported so far (build+load+run on Tcl/Tk 9.1 arm64):** sqlite3 3.50.4,
+tdom 0.9.3, Tktable 2.11, treectrl 2.4.2, tls 1.7.22, itcl 4.3.8, itk 4.1.0
+(+ iwidgets 4.1 pure-Tcl). See `ext-build/buildext.sh` + `ext-build/patches/`.
+
+**Img is the next big rock** (unlocks `imgdemo` and completes `tkchat`): tkimg is a
+coordinated ~30-package tree (zlib → libpng/libjpeg/libtiff → base → per-format
+handlers) built through one shared `tclconfig/`, and `base/tkimgPPB.c` uses
+`Tk_PhotoPutBlock`, whose Tk 9 signature changed to `Tcl_Size`. Treat it as its own
+focused pass, not a one-off `buildext` build.
 
 ## 2. Real build system
 
