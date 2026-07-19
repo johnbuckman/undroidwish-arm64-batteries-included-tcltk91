@@ -27,15 +27,26 @@ proc _uwlog {m} {
 _uwlog "boot: root=$::uw_root"
 
 # --- batteries-included packages on auto_path --------------------------------
-# (No extensions are ported to Tcl 9 in this build yet; this still registers any
-# that get added later, and is harmless when there are none.)
+# Isolate from system package dirs (/usr/local/lib etc. may hold old x86_64
+# builds that would shadow the bundled arm64 ones), then register the bundled
+# batteries. undroidwish is self-contained.
+set ::auto_path [lsearch -all -inline -not -regexp $::auto_path \
+    {^(/usr/local|/usr/lib|/opt|/Library/Tcl|/System)}]
 proc ::uw_add_pkgdirs {root} {
-    if {[file exists [file join $root pkgIndex.tcl]] && ($root ni $::auto_path)} {
-        lappend ::auto_path $root
+    if {[file exists [file join $root pkgIndex.tcl]]} {
+        if {$root ni $::auto_path} { lappend ::auto_path $root }
+        # Register eagerly so bundled packages win over any the interpreter
+        # already knows about from outside auto_path (e.g. a stale system
+        # sqlite).  source runs the pkgIndex in this scope, where $dir is set
+        # (the pkgIndex needs it).
+        catch { apply {{dir} { source [file join $dir pkgIndex.tcl] }} $root }
     }
     foreach d [glob -nocomplain -type d -directory $root *] { ::uw_add_pkgdirs $d }
 }
+set _bat [file join [file dirname [info nameofexecutable]] .. Resources batteries]
+if {[file isdirectory $_bat]} { catch { ::uw_add_pkgdirs [file normalize $_bat] } }
 catch { ::uw_add_pkgdirs $::uw_root }
+unset -nocomplain _bat
 
 # --- demos -------------------------------------------------------------------
 # key -> {menu-label  root-relative-dispatcher}.  Same list as undroidwish; the
