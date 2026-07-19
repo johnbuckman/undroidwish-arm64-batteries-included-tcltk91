@@ -41,3 +41,19 @@ first sweep learned.
 
 Each remaining battery is an individual fix along one of these lines — a
 diminishing-returns tail, not a single sweep.
+
+## Update: +vfs 1.4.2
+tclvfs builds + loads. Two fixes beyond buildext: its companion `.tcl` files
+carry `package require Tcl 8.x` guards (patch to `8.x-` in the battery, like
+the demo apps); nothing C-side. vfs.tcl loads `libvfs1.4.2.dylib` with no
+prefix (derives `Vfs_Init` from the filename — correct).
+
+## Channel-driver family (trofs, tcludp, Memchan, ...) — the biggest blocker
+Tcl 9 turned `Tcl_DriverCloseProc` and `Tcl_DriverSeekProc` into `typedef void`
+(removed; use `Tcl_DriverClose2Proc` / `Tcl_DriverWideSeekProc`). Old drivers
+that forward-declare `static Tcl_DriverCloseProc DriverClose;` then become
+`static void DriverClose;` -> "incomplete type" + "redefinition as different
+kind of symbol", and `(*seekProc)()` calls hit "called object type void*".
+Each such driver needs: explicit function prototypes instead of the removed
+typedefs, a close2Proc wrapper (flags==0 => old close), and the ChannelType
+bumped to VERSION_5 (cf. the tls channel patch). Individual per-extension work.
