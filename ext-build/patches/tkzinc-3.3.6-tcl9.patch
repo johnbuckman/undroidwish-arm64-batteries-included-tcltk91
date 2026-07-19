@@ -1,0 +1,51 @@
+--- /Users/john/iwish/src/androwish/jni/tkzinc/generic/tkZinc.c	2026-06-11 10:26:32
++++ /Users/john/undroidwish91/ext-build/tkzinc-src/generic/tkZinc.c	2026-07-19 18:30:43
+@@ -1565,6 +1565,15 @@
+   wi->track_symbol_obj = NULL;
+ #  endif
+ #endif
++  /*
++   * Under PLATFORM_SDL the per-widget image cache (used by ZnGetImage) is
++   * only initialized above inside #ifdef GL.  Without GL it would stay
++   * uninitialized -> a NULL findProc -> crash on the first bitmap/image
++   * lookup (e.g. the ATC symbol defaults during Configure).  Init it here.
++   */
++#if defined(PLATFORM_SDL) && !defined(GL)
++  Tcl_InitHashTable(&wi->images, TCL_STRING_KEYS);
++#endif
+   wi->tile = ZnUnspecifiedImage;
+ #ifndef PTK_800
+   wi->tile_obj = NULL;
+@@ -6829,7 +6838,7 @@
+ 
+   init = wi->fore_color == NULL;
+   render = wi->render;
+-  if (Tk_ConfigureWidget(interp, wi->win, config_specs, argc,
++  if (Uw_TkConfigureWidgetStr(interp, wi->win, config_specs, argc,
+ #ifdef PTK
+                          (Tcl_Obj **) args, (char *) wi, flags) != TCL_OK)
+ #else
+@@ -9620,9 +9629,9 @@
+ #ifndef PTK
+   if (
+ # ifdef USE_TCL_STUBS
+-      Tcl_InitStubs(interp, "8.5", 0)
++      Tcl_InitStubs(interp, "8.5-", 0)
+ # else
+-      Tcl_PkgRequire(interp, "Tcl", "8.5", 0)
++      Tcl_PkgRequire(interp, "Tcl", "8.5-", 0)
+ # endif
+       == NULL) {
+     return TCL_ERROR;
+@@ -9630,9 +9639,9 @@
+ 
+   if (
+ # ifdef USE_TK_STUBS
+-      Tk_InitStubs(interp, "8.5", 0)
++      Tk_InitStubs(interp, "8.5-", 0)
+ # else
+-      Tcl_PkgRequire(interp, "Tk", "8.5", 0)
++      Tcl_PkgRequire(interp, "Tk", "8.5-", 0)
+ # endif
+       == NULL) {
+     return TCL_ERROR;
