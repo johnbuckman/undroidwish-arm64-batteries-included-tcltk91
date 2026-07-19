@@ -1,0 +1,35 @@
+--- /Users/john/iwish/src/androwish/jni/itk/generic/itkArchBase.c	2026-06-11 10:26:30
++++ /Users/john/undroidwish91/ext-build/itk-src/generic/itkArchBase.c	2026-07-19 17:09:15
+@@ -2687,9 +2687,9 @@
+     Tcl_Interp *interp;          /* interpreter handling this request */
+     const char *options;               /* string description of config options */
+ {
+-    int confc;
++    Tcl_Size confc;
+     const char **confv = NULL;
+-    int optc;
++    Tcl_Size optc;
+     const char **optv = NULL;
+ 
+     int i, newEntry;
+@@ -2804,7 +2804,8 @@
+     GenericConfigOpt *genericOpt = NULL;
+     Tcl_Obj *codePtr = NULL;
+ 
+-    int optc, result;
++    Tcl_Size optc;
++    int result;
+     const char **optv;
+     char *name;
+     const char *my_name;
+--- /Users/john/iwish/src/androwish/jni/itk/generic/itkArchetype.c	2026-06-11 10:26:30
++++ /Users/john/undroidwish91/ext-build/itk-src/generic/itkArchetype.c	2026-07-19 17:09:15
+@@ -847,7 +847,7 @@
+     Tcl_HashSearch place;
+     ArchInfo *info;
+     ArchComponent *archComp;
+-    int cmdlinec;
++    Tcl_Size cmdlinec;
+     Tcl_Obj *objPtr;
+     Tcl_Obj *cmdlinePtr;
+     Tcl_Obj **cmdlinev;
