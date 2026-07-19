@@ -18,7 +18,37 @@ High-value / likely-needed first: **Img/tkimg**, **tls**, **tdom**, **tkblt/BLT*
 **Memchan**, **tclvfs/zipfs**. Expect a tail of old/unmaintained extensions
 (Mpexpr, augeas, kafkatcl, tclxml, …) that may need real patching or dropping.
 
-Track per-extension status in a table here as they are done.
+### Demos status
+
+The bare-launch Demos menu (via [`main.tcl`](main.tcl)) enables a demo only when it
+actually runs. The **pure-Tcl/Tk** ones work today once their packages are copied
+into `batteries/` (from the AndroWish assets), with a one-line version-guard patch
+(`package require Tk 8.x` → `8.x-`):
+
+| Demo | Needs | Status |
+|------|-------|--------|
+| widget | Tk only | ✅ works |
+| tkcon | Tk only (`Tk 8.4`→`8.4-`) | ✅ works |
+| tkinspect | Tk only | ✅ works |
+| notebook | snit/tcllib (pure Tcl) + version-guard | ✅ works |
+| tksqlite | **sqlite3** | ⬜ needs ext |
+| stardom | **tdom** | ⬜ needs ext |
+| iwidgets | **itcl** | ⬜ needs ext |
+| tkchat | **tls** (+deps) | ⬜ needs ext |
+| helpviewer | **tkhtml** | ⬜ needs ext |
+| imgdemo | **Img** | ⬜ needs ext |
+| tktable | **Tktable** | ⬜ needs ext |
+| treectrl | **treectrl** | ⬜ needs ext |
+| zinc-widget | **Tkzinc** | ⬜ needs ext |
+| tkpdemo | **tkpath** | ⬜ needs ext |
+| vncviewer | **tkvnc** | ⬜ needs ext |
+| zint | **zint** | ⬜ needs ext |
+| borgdemo | **borg** | ⬜ needs ext |
+| bledemo | **ble** (CoreBluetooth) | ⬜ needs ext |
+
+Getting the ⬜ demos working is exactly §1 above: build/patch each extension for
+Tcl 9.1 arm64. Tractable first targets (recent upstreams already support Tcl 9):
+sqlite3, tdom, itcl, tls.
 
 ## 2. Real build system
 

@@ -8,7 +8,16 @@
 # Running `undroidwish91 <script>` gives a startup script, so Tk does not source
 # this file -- de1plus / explicit demo dispatchers are unaffected.
 
-set ::uw_root [file dirname [info nameofexecutable]]
+# Find the bundled batteries/demos root: the .app's Contents/Resources/batteries,
+# or a "batteries" dir next to the executable, else the executable dir itself.
+set ::uw_root ""
+foreach _cand [list \
+        [file join [file dirname [info nameofexecutable]] .. Resources batteries] \
+        [file join [file dirname [info nameofexecutable]] batteries]] {
+    if {[file isdirectory $_cand]} { set ::uw_root [file normalize $_cand]; break }
+}
+if {$::uw_root eq ""} { set ::uw_root [file dirname [info nameofexecutable]] }
+unset -nocomplain _cand
 
 proc _uwlog {m} {
     if {[info exists ::env(UNDROIDWISH_BOOT_LOG)]} {
@@ -55,11 +64,6 @@ set ::uw_demos {
 }
 proc uw_demo_resolve {entry} {
     if {$entry eq ""} { return "" }
-    # The Tk widget demo ships in the Tk script library.
-    if {$entry eq "widget"} {
-        set w [file join $::tk_library demos widget]
-        if {[file exists $w]} { return $w }
-    }
     set p [file join $::uw_root $entry]
     return [expr {[file exists $p] ? $p : ""}]
 }

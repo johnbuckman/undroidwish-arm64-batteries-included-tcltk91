@@ -99,6 +99,8 @@ cp -R "$W/library"             "$APP/Contents/Resources/tk9.1"   # includes font
 [ -f "$HOME/undroidwish91/main.tcl" ] && cp "$HOME/undroidwish91/main.tcl" "$APP/Contents/Resources/main.tcl"
 # app icon (the undroidwish icon)
 [ -f "$HOME/undroidwish91/undroidwish91.icns" ] && cp "$HOME/undroidwish91/undroidwish91.icns" "$APP/Contents/Resources/undroidwish91.icns"
+# bundled demos/batteries (pure-Tcl ones work; C-extension ones await Tcl 9 ports)
+[ -d "$HOME/undroidwish91/batteries" ] && cp -R "$HOME/undroidwish91/batteries" "$APP/Contents/Resources/batteries"
 cat > "$APP/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
