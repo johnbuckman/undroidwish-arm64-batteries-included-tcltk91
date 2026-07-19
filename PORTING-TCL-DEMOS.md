@@ -41,7 +41,4 @@ recurring patterns:
 
 ## Status
 - **tkchat**: WORKS (full UI: menubar, paned chat window, entry, login dialog).
-- **helpviewer**: all C deps load (Tkhtml built+loads, Img, BWidget, tcllib,
-  tklib); version guards + rframe scoping + UTF-8 fixed; remaining tail is
-  app-config init (`app(CFG_FILE)` global/namespace scoping in the multi-file
-  helpviewer app). Not yet a working demo.
+- **helpviewer**: WORKS. Same global/namespace scoping class as rframe was the last fix -- `$app(CFG_FILE)` inside `namespace eval helpviewerapp` -> `$::app(CFG_FILE)`.
