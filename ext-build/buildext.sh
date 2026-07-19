@@ -11,23 +11,30 @@ BASE="$HOME/undroidwish91/ext-build"
 D="$BASE/$NAME"
 
 rm -rf "$D"; cp -R "$SRC" "$D"; cd "$D" || exit 2
+# Delete stale build artifacts copied from the source tree.  AndroWish sources
+# ship PREBUILT iOS .dylibs -- if the build is interrupted or fails, that stale
+# iOS dylib survives and dlopen rejects it ("incompatible platform"); nuke them
+# so a "found a .dylib" only ever means OUR fresh macOS build.
 find . -name '*.o' -delete -o -name '*.lo' -delete 2>/dev/null
+find . -name '*.dylib' -delete 2>/dev/null
 rm -f config.cache config.status
 
 # Accept Tcl/Tk 9 in the stubs-init version guards ("8.x" -> "8.5-").
-grep -rlE 'Tcl_InitStubs\(interp, "8\.|Tk_InitStubs\(interp, "8\.' generic *.c 2>/dev/null | while read f; do
-  perl -i -pe 's/(Tcl_InitStubs\(interp, ")8\.[0-9]+(")/${1}8.5-${2}/g; s/(Tk_InitStubs\(interp, ")8\.[0-9]+(")/${1}8.5-${2}/g' "$f"
+# Recursive over the whole tree -- sources live in generic/, src/, unix/, etc.
+# \w+ (not just "interp") for the interp arg -- critcl-generated code uses `ip`.
+grep -rlE '(Tcl|Tk)_InitStubs\(\w+, "8\.' . --include='*.c' 2>/dev/null | while read f; do
+  perl -i -pe 's/((?:Tcl|Tk)_InitStubs\(\w+, ")8\.[0-9]+(")/${1}8.5-${2}/g' "$f"
 done
 
 # also catch `..._version = "8.x"` strings used with InitStubs
-grep -rlE '_version[^\n]*=[^\n]*"8\.[0-9]' generic *.c 2>/dev/null | while read f; do perl -i -pe 's/(_version\s*=\s*")8\.[0-9]+(")/${1}8.5-${2}/g' "$f"; done
+grep -rlE '_version[^\n]*=[^\n]*"8\.[0-9]' . --include='*.c' 2>/dev/null | while read f; do perl -i -pe 's/(_version\s*=\s*")8\.[0-9]+(")/${1}8.5-${2}/g' "$f"; done
 
-# Tcl_PkgRequire(interp, "Tcl"/"Tk", "8.x", ...) -> "8.5-" (Tcl 9 rejects a
+# Tcl_PkgRequire[Ex](ip/interp, "Tcl"/"Tk", "8.x", ...) -> "8.5-" (Tcl 9 rejects a
 # bare "8.x" as 8-only; these can be lazy, firing well after load).
-grep -rlE 'Tcl_PkgRequire\(interp, "T[ck]l?k?", "8\.[0-9]' generic *.c 2>/dev/null | while read f; do perl -i -pe 's/(Tcl_PkgRequire\(interp, "T[ck]l?k?", ")8\.[0-9]+(")/${1}8.5-${2}/g' "$f"; done
+grep -rlE 'Tcl_PkgRequire\w*\(\w+, "T[ck]l?k?", "8\.[0-9]' . --include='*.c' 2>/dev/null | while read f; do perl -i -pe 's/(Tcl_PkgRequire\w*\(\w+, "T[ck]l?k?", ")8\.[0-9]+(")/${1}8.5-${2}/g' "$f"; done
 
 # Tk 9: rewrite string-based Tk_ConfigureWidget calls to the wish shim.
-grep -rlE "Tk_ConfigureWidget\(" generic *.c 2>/dev/null | while read f; do perl -i -pe "s/\\bTk_ConfigureWidget\\s*\\(/Uw_TkConfigureWidgetStr(/g" "$f"; done
+grep -rlE "Tk_ConfigureWidget\(" . --include=*.c 2>/dev/null | while read f; do perl -i -pe "s/\\bTk_ConfigureWidget\\s*\\(/Uw_TkConfigureWidgetStr(/g" "$f"; done
 
 TKARGS=""
 if [ "$NEEDTK" = "1" ]; then
@@ -35,11 +42,14 @@ if [ "$NEEDTK" = "1" ]; then
 fi
 SDLW="$HOME/undroidwish91/sdl2tk-9.1"
 # Tcl 9.1 generic FIRST so its tcl.h wins over any stale /usr/local/include 8.x.
-SDLINC="-I$TCL9/generic -I$SDLW/sdl -I$SDLW/xlib -I$SDLW/unix -I$SDLW/generic -I$SDLW/bitmaps -I$SDLW/sdl/agg-2.4/include -I/opt/homebrew/include/freetype2"
+SDLINC="-I$TCL9/generic -I$TCL9/libtommath -I$SDLW/sdl -I$SDLW/xlib -I$SDLW/unix -I$SDLW/generic -I$SDLW/bitmaps -I$SDLW/sdl/agg-2.4/include -I/opt/homebrew/include/freetype2"
 COMPAT="-include $BASE/ext-compat91.h"
+# -mmacosx-version-min pins the Mach-O platform to macOS; without it some of
+# these AndroWish TEA Makefiles (originally iOS-targeted) emit an iOS-platform
+# dylib that dlopen rejects ("incompatible platform (have 'iOS', need 'macOS')").
 CC="clang" \
-CFLAGS="-arch arm64 -O2 -DPLATFORM_SDL $SDLINC $COMPAT -Wno-implicit-int -Wno-implicit-function-declaration -Wno-int-conversion -Wno-incompatible-function-pointer-types -Wno-macro-redefined" \
-LDFLAGS="-arch arm64 -Wl,-undefined,dynamic_lookup" \
+CFLAGS="-arch arm64 -mmacosx-version-min=11.0 -O2 -DPLATFORM_SDL $SDLINC $COMPAT -Wno-implicit-int -Wno-implicit-function-declaration -Wno-int-conversion -Wno-incompatible-function-pointer-types -Wno-macro-redefined" \
+LDFLAGS="-arch arm64 -mmacosx-version-min=11.0 -Wl,-undefined,dynamic_lookup" \
   ./configure --with-tcl="$TCL9/unix" --with-tclinclude="$TCL9/generic" $TKARGS $EXTRA \
   > "$BASE/${NAME}_conf.log" 2>&1
 CFG=$?
