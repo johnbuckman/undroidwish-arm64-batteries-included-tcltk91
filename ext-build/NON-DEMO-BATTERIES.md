@@ -57,3 +57,21 @@ kind of symbol", and `(*seekProc)()` calls hit "called object type void*".
 Each such driver needs: explicit function prototypes instead of the removed
 typedefs, a close2Proc wrapper (flags==0 => old close), and the ChannelType
 bumped to VERSION_5 (cf. the tls channel patch). Individual per-extension work.
+
+## Tally (this pass): 8 non-demo batteries working
+parse_args 0.5.1, pikchr 1.0, parser 1.8 (tclparser), tksvg 0.14, tclcsv 2.3,
+vfs 1.4.2, udp 1.0.11 (tcludp), Memchan 2.4. All load + run on Tcl/Tk 9.1 arm64.
+
+Attempted but deferred (each needs bespoke work, diminishing returns):
+- **rl_json** — builds (force -DTIP445_SHIM=0) but init caches the removed
+  `Tcl_GetObjType("int")`; needs a newer upstream.
+- **tclx** — `Tcl_Value`/`Tcl_ValueType` (old Tcl_CreateMathFunc API) removed.
+- **nsf** — configure wants generated `generic/stubs9.1/nsfDecls.h` (per-version
+  stubs must be regenerated for 9.1).
+- **trofs** — channel driver is VERSION_3; needs the full VERSION_3->5 struct
+  expansion + seek->wideSeek signature change (harder than udp/Memchan, which
+  were already VERSION_5).
+- **tclepeg** — builds but needs libjpeg linkage (`_jpeg_resync_to_restart`).
+- **tbcload / Trf** — build failures not yet triaged.
+- External-lib ones (Rtcl, tkvlc, TclMagick, kafka, tcltaglib, augeas, snap7,
+  modbus, VecTcl-LAPACK) — need libs not installed.
