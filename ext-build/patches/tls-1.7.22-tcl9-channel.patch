@@ -1,0 +1,48 @@
+--- /Users/john/Documents/navibuild/tcltls-1.7.22/tlsIO.c	2020-10-12 22:39:22
++++ ./tls-src/tlsIO.c	2026-07-19 16:52:21
+@@ -24,6 +24,7 @@
+  */
+ static int  TlsBlockModeProc _ANSI_ARGS_((ClientData instanceData, int mode));
+ static int  TlsCloseProc _ANSI_ARGS_((ClientData instanceData, Tcl_Interp *interp));
++static int  TlsClose2Proc _ANSI_ARGS_((ClientData instanceData, Tcl_Interp *interp, int flags));
+ static int  TlsInputProc _ANSI_ARGS_((ClientData instanceData, char *buf, int bufSize, int *errorCodePtr));
+ static int  TlsOutputProc _ANSI_ARGS_((ClientData instanceData, CONST char *buf, int toWrite, int *errorCodePtr));
+ static int  TlsGetOptionProc _ANSI_ARGS_((ClientData instanceData, Tcl_Interp *interp, CONST84 char *optionName, Tcl_DString *dsPtr));
+@@ -88,7 +89,8 @@
+ 		 */
+ 
+ 		tlsChannelType->typeName	= "tls";
+-		tlsChannelType->closeProc	= TlsCloseProc;
++		tlsChannelType->closeProc	= TCL_CLOSE2PROC;
++		tlsChannelType->close2Proc	= TlsClose2Proc;
+ 		tlsChannelType->inputProc	= TlsInputProc;
+ 		tlsChannelType->outputProc	= TlsOutputProc;
+ 		tlsChannelType->getOptionProc	= TlsGetOptionProc;
+@@ -106,7 +108,7 @@
+ 		 * blockModeProc), blockModeProc in a different place and of
+ 		 * course usage of the handlerProc.
+ 		 */
+-		tlsChannelType->version       = TCL_CHANNEL_VERSION_2;
++		tlsChannelType->version       = TCL_CHANNEL_VERSION_5;
+ 		tlsChannelType->blockModeProc = TlsBlockModeProc;
+ 		tlsChannelType->handlerProc   = TlsNotifyProc;
+ 	}
+@@ -174,6 +176,18 @@
+ 
+ 	/* Interp is unused. */
+ 	interp = interp;
++}
++
++/*
++ * Tcl 9 requires channel drivers to be TCL_CHANNEL_VERSION_5 with a
++ * close2Proc (closeProc must be NULL). Wrap the existing full-close path:
++ * flags==0 means close the whole channel.
++ */
++static int TlsClose2Proc(ClientData instanceData, Tcl_Interp *interp, int flags) {
++	if (flags != 0) {
++		return(EINVAL);
++	}
++	return(TlsCloseProc(instanceData, interp));
+ }
+ 
+ /*

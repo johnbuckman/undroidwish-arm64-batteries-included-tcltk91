@@ -18,6 +18,9 @@
 #ifndef VOID
 #define VOID void
 #endif
+#ifndef _ANSI_ARGS_
+#define _ANSI_ARGS_(x) x
+#endif
 #ifndef Tk_Offset
 #define Tk_Offset(type, field) offsetof(type, field)
 #endif

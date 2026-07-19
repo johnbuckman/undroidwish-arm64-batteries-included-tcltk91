@@ -30,7 +30,8 @@ if [ "$NEEDTK" = "1" ]; then
   TKARGS="--with-tk=$BLD --with-tkinclude=$HOME/undroidwish91/sdl2tk-9.1/generic"
 fi
 SDLW="$HOME/undroidwish91/sdl2tk-9.1"
-SDLINC="-I$SDLW/sdl -I$SDLW/xlib -I$SDLW/unix -I$SDLW/generic -I$SDLW/bitmaps -I$SDLW/sdl/agg-2.4/include -I/opt/homebrew/include/freetype2"
+# Tcl 9.1 generic FIRST so its tcl.h wins over any stale /usr/local/include 8.x.
+SDLINC="-I$TCL9/generic -I$SDLW/sdl -I$SDLW/xlib -I$SDLW/unix -I$SDLW/generic -I$SDLW/bitmaps -I$SDLW/sdl/agg-2.4/include -I/opt/homebrew/include/freetype2"
 COMPAT="-include $BASE/ext-compat91.h"
 CC="clang" \
 CFLAGS="-arch arm64 -O2 -DPLATFORM_SDL $SDLINC $COMPAT -Wno-implicit-int -Wno-implicit-function-declaration -Wno-int-conversion -Wno-incompatible-function-pointer-types -Wno-macro-redefined" \
@@ -43,6 +44,10 @@ if [ $CFG -ne 0 ]; then echo "$NAME: CONFIGURE FAILED"; tail -3 "$BASE/${NAME}_c
 # Extensions must resolve X drawing calls against the wish's SDL emulation, not
 # real libX11 -- strip any -lX11 / X11 lib path the configure detected.
 [ -f Makefile ] && perl -i -pe 's/-lX11//g; s{-L/usr/X11R?6?/lib}{}g; s{-L/opt/X11/lib}{}g' Makefile
+# TCL_PREFIX=/usr/local injects -I/usr/local/include, whose stale 8.x tcl.h
+# would shadow the bundled Tcl 9.1 headers -- drop it (we supply Tcl 9.1
+# generic in CFLAGS).
+[ -f Makefile ] && perl -i -pe 's{-I/usr/local/include}{}g' Makefile
 
 make -j4 > "$BASE/${NAME}_make.log" 2>&1
 if [ $? -ne 0 ]; then
