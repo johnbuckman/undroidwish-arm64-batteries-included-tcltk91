@@ -37,6 +37,11 @@ It is the Tcl/Tk-9.1 sibling of the existing 8.6 recipe repo,
 - At runtime: `package require Tk` → `9.1b0`, `tk windowingsystem` → `x11`,
   widgets create and render, event loop runs, clean exit.
 - Fonts are discovered (system fonts + bundled DejaVu) and rendered via FreeType.
+- **Bare launch matches undroidwish**: `open undroidwish91.app` (no script) shows
+  the main window **and** a Tk console, and installs a **Demos** submenu on the
+  console's File menu (via the bundled [`main.tcl`](main.tcl)). The Tk `widget`
+  demo runs; the extension-backed demos are present but disabled until the
+  batteries are ported. Passing a script (`open … --args foo.tcl`) skips all this.
 
 ## What does **not** work yet
 
@@ -80,6 +85,7 @@ Full step-by-step instructions, dependency locations, and every gotcha are in
 | [`README.md`](README.md) | This file |
 | [`AGENTS.md`](AGENTS.md) | Detailed status + full build recipe + resume notes (for humans and AI) |
 | [`TODO.md`](TODO.md) | Remaining work to reach a shippable build |
+| [`main.tcl`](main.tcl) | Bare-launch boot script (console + Demos menu + window placement) |
 | [`src/`](src/) | New source files authored for the 9.1 port (compat bridges + stubs) |
 | [`patches/`](patches/) | (Reserved) unified diffs of the changes to vendored sources |
 | [`build.sh`](build.sh) | The direct build/link script |

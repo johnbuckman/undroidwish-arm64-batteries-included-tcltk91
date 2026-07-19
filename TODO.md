@@ -61,6 +61,15 @@ pristine `tk9.1b0` + AndroWish `sdl2tk`. Key edits to capture:
 - `tkAppInit.c` — `UwFindLibraries()`: auto-discover the Tcl/Tk 9.1 script
   libraries (relative to the executable + common install locations) so
   `TCL_LIBRARY`/`TK_LIBRARY` need not be set.
+- `tkAppInit.c` — `Tcl_AppInit`: on a bare launch (no startup script) force the
+  Tk console window and point `tcl_rcFileName` at the bundled `main.tcl`
+  (`Contents/Resources/main.tcl`) so the console + Demos menu + placement appear
+  (matching undroidwish's bare-launch behavior).
+- `tkSDLWm.c` `SetNetWmType` — `int objc/len` → `Tcl_Size` (was crashing on menu
+  window creation). **Note:** this is one instance of a broader class — several
+  more `Tcl_ListObjGetElements` / `Tcl_SplitList` / `Tcl_GetStringFromObj` call
+  sites across the SDL files still pass `int` length vars and will crash when
+  their code paths run under Tcl 9. Sweep them all.
 
 ## 4. Packaging
 
