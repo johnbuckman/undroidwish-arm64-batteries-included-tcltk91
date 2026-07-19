@@ -6,8 +6,10 @@ that proof-of-concept and a shippable, batteries-included build.
 
 ## 1. Port the extensions ("batteries") to Tcl 9 — the long pole
 
-The ~60 bundled C extensions have **not** been touched yet. Each must be recompiled
-against the Tcl 9 stubs, and many will need source patches for the Tcl 9 ABI:
+**All 17 bare-launch demos now work** (see the table below). The extensions each
+demo needs are ported. The remaining ~40 non-demo batteries (BLT, Memchan, tclvfs,
+Mpexpr, augeas, kafkatcl, …) are not yet built — they follow the same recipe
+(`ext-build/buildext.sh`) and Tcl 9 ABI notes below:
 
 - `Tcl_Size` / TIP 494 (objc, lengths, indices → `Tcl_Size`, not `int`)
 - `Tcl_ObjCmdProc2` where command procs take `Tcl_Size objc`
@@ -42,19 +44,22 @@ into `batteries/` (from the AndroWish assets), with a one-line version-guard pat
 | zinc-widget | **Tkzinc** | ✅ works |
 | tkpdemo | **tkpath** (+cairo) | ✅ works |
 | vncviewer | **tkvnc** | ✅ works |
-| zint | **zint** | ⬜ needs ext |
-| borgdemo | **borg** | ⬜ needs ext |
-| bledemo | **ble** (CoreBluetooth) | ⬜ needs ext |
+| zint | **zint** | ✅ works |
+| borgdemo | **borg** | ✅ works |
+| bledemo | **ble** (CoreBluetooth) | ✅ works |
 
-**C extensions ported so far (build+load+run on Tcl/Tk 9.1 arm64):** sqlite3 3.50.4,
-tdom 0.9.3, Tktable 2.11, treectrl 2.4.2, tls 1.7.22, itcl 4.3.8, itk 4.1.0
-(+ iwidgets 4.1 pure-Tcl). See `ext-build/buildext.sh` + `ext-build/patches/`.
+**🎉 ALL 17 demos work.** C-extension stacks ported (build+load+run on Tcl/Tk 9.1
+arm64): sqlite3 3.50.4, tdom 0.9.3, Tktable 2.11, treectrl 2.4.2, tls 1.7.22,
+itcl 4.3.8, itk 4.1.0 (+ iwidgets 4.1 pure-Tcl), borg 1.0, zint 2.13.0,
+tkhtml 3.0, **Img/tkimg 1.4.11 (24 dylibs)**, Tkzinc 3.3.6, tkpath 0.3.3 (cairo),
+tkvnc 0.5. Plus the pure-Tcl apps tkchat and helpviewer. See `ext-build/buildext.sh`,
+`ext-build/patches/`, `ext-build/BUILD-Img.md`, and `PORTING-TCL-DEMOS.md`.
 
-**Img is the next big rock** (unlocks `imgdemo` and completes `tkchat`): tkimg is a
-coordinated ~30-package tree (zlib → libpng/libjpeg/libtiff → base → per-format
-handlers) built through one shared `tclconfig/`, and `base/tkimgPPB.c` uses
-`Tk_PhotoPutBlock`, whose Tk 9 signature changed to `Tcl_Size`. Treat it as its own
-focused pass, not a one-off `buildext` build.
+**Not self-contained:** tls links homebrew openssl@3; tkpath links homebrew cairo.
+(Same trade-off as the 8.6 build's 4 homebrew-dependent extensions.)
+
+**Known issue:** PNG *write* (`$photo write x.png -format png`) SIGSEGVs inside
+libpng; the read path (what imgdemo uses) is fine. See `ext-build/BUILD-Img.md`.
 
 ## 2. Real build system
 
