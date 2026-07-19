@@ -1,0 +1,11 @@
+--- /Users/john/iwish/src/androwish/jni/tkhtml/src/htmlimage.c	2026-06-11 10:26:32
++++ /Users/john/undroidwish91/ext-build/tkhtml-src/src/htmlimage.c	2026-07-19 17:31:40
+@@ -227,7 +227,7 @@
+     int height,
+     int compRule
+ ){
+-    Tk_PhotoPutBlock(handle, blockPtr, x, y, width, height);
++    Tk_PhotoPutBlock(interp, handle, blockPtr, x, y, width, height, compRule);
+ }
+ 
+ static void
