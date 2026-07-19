@@ -31,14 +31,14 @@ into `batteries/` (from the AndroWish assets), with a one-line version-guard pat
 | tkcon | Tk only (`Tk 8.4`→`8.4-`) | ✅ works |
 | tkinspect | Tk only | ✅ works |
 | notebook | snit/tcllib (pure Tcl) + version-guard | ✅ works |
-| tksqlite | **sqlite3** | ⬜ needs ext |
-| stardom | **tdom** | ⬜ needs ext |
+| tksqlite | **sqlite3** (+Tktable) | ✅ works (3.50.4) |
+| stardom | **tdom** (+BWidget) | ✅ works (0.9.3) |
+| tktable | **Tktable** | ✅ works (2.11) |
+| treectrl | **treectrl** | ✅ works (2.4.2) |
 | iwidgets | **itcl** | ⬜ needs ext |
 | tkchat | **tls** (+deps) | ⬜ needs ext |
 | helpviewer | **tkhtml** | ⬜ needs ext |
 | imgdemo | **Img** | ⬜ needs ext |
-| tktable | **Tktable** | ⬜ needs ext |
-| treectrl | **treectrl** | ⬜ needs ext |
 | zinc-widget | **Tkzinc** | ⬜ needs ext |
 | tkpdemo | **tkpath** | ⬜ needs ext |
 | vncviewer | **tkvnc** | ⬜ needs ext |
