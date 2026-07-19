@@ -97,6 +97,8 @@ cp -R "$TCL9/library"          "$APP/Contents/Resources/tcl9.1"
 cp -R "$W/library"             "$APP/Contents/Resources/tk9.1"   # includes fonts/
 # boot script sourced on a bare launch (console + Demos menu + placement)
 [ -f "$HOME/undroidwish91/main.tcl" ] && cp "$HOME/undroidwish91/main.tcl" "$APP/Contents/Resources/main.tcl"
+# app icon (the undroidwish icon)
+[ -f "$HOME/undroidwish91/undroidwish91.icns" ] && cp "$HOME/undroidwish91/undroidwish91.icns" "$APP/Contents/Resources/undroidwish91.icns"
 cat > "$APP/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -105,6 +107,7 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
   <key>CFBundleExecutable</key><string>undroidwish91</string>
   <key>CFBundleIdentifier</key><string>org.tcltk.undroidwish91</string>
   <key>CFBundleName</key><string>undroidwish91</string>
+  <key>CFBundleIconFile</key><string>undroidwish91.icns</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>9.1</string>
   <key>NSHighResolutionCapable</key><true/>
