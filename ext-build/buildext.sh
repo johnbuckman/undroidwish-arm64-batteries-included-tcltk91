@@ -22,6 +22,10 @@ done
 # also catch `..._version = "8.x"` strings used with InitStubs
 grep -rlE '_version[^\n]*=[^\n]*"8\.[0-9]' generic *.c 2>/dev/null | while read f; do perl -i -pe 's/(_version\s*=\s*")8\.[0-9]+(")/${1}8.5-${2}/g' "$f"; done
 
+# Tcl_PkgRequire(interp, "Tcl"/"Tk", "8.x", ...) -> "8.5-" (Tcl 9 rejects a
+# bare "8.x" as 8-only; these can be lazy, firing well after load).
+grep -rlE 'Tcl_PkgRequire\(interp, "T[ck]l?k?", "8\.[0-9]' generic *.c 2>/dev/null | while read f; do perl -i -pe 's/(Tcl_PkgRequire\(interp, "T[ck]l?k?", ")8\.[0-9]+(")/${1}8.5-${2}/g' "$f"; done
+
 # Tk 9: rewrite string-based Tk_ConfigureWidget calls to the wish shim.
 grep -rlE "Tk_ConfigureWidget\(" generic *.c 2>/dev/null | while read f; do perl -i -pe "s/\\bTk_ConfigureWidget\\s*\\(/Uw_TkConfigureWidgetStr(/g" "$f"; done
 
