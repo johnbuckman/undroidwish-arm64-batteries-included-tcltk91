@@ -1,6 +1,6 @@
 # TODO — undroidwish-arm64 on Tcl/Tk 9.1
 
-Ordered roughly by priority. The core `sdl2wish` (Tcl 9.1 + Tk 9.1 on SDL2, native
+Ordered roughly by priority. The core `undroidwish91` (Tcl 9.1 + Tk 9.1 on SDL2, native
 arm64) already builds and renders a window; everything below is what stands between
 that proof-of-concept and a shippable, batteries-included build.
 
@@ -58,6 +58,9 @@ pristine `tk9.1b0` + AndroWish `sdl2tk`. Key edits to capture:
   `int objc → Tcl_Size objc` in `SdlTkFontInit`.
 - Widget files (`tkSDLButton/Scale/Scrlbr/Menu/Menubu`) re-adopted from Tk 9.1's
   `unix/` origins (the `int → Tcl_Obj*` config-option migration).
+- `tkAppInit.c` — `UwFindLibraries()`: auto-discover the Tcl/Tk 9.1 script
+  libraries (relative to the executable + common install locations) so
+  `TCL_LIBRARY`/`TK_LIBRARY` need not be set.
 
 ## 4. Packaging
 

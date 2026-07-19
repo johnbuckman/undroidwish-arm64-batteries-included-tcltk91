@@ -28,7 +28,7 @@ So the port is "re-fork ~17 platform files + reconcile signatures", not a rewrit
 Works:
 - **Tcl 9.1b0** builds native arm64; **Tk 9.1** + the full `sdl2tk` backend
   (all 30 `.c` + `SdlTkAGG.cpp`) compile clean against Tk 9.1.
-- Links into a native arm64 `sdl2wish`.
+- Links into a native arm64 `undroidwish91`.
 - Runtime: `package require Tk` → `9.1b0`; `tk windowingsystem` → `x11`; widgets
   (label, button, entry, checkbutton, scale) create and render; the event loop
   runs; clean exit. Fonts discovered (system + bundled DejaVu) and rendered via
@@ -43,7 +43,7 @@ Not done (see [TODO.md](TODO.md)):
 
 ## 3. Prerequisites / sources (nothing is vendored here)
 
-You need, laid out under a work root (the reference build used `~/tk9-spike/`):
+You need, laid out under a work root (the reference build used `~/undroidwish91/`):
 
 | Component | Source | Notes |
 |-----------|--------|-------|
@@ -90,17 +90,41 @@ actual object lists and flags):
    Only `xcolors.o` is used from `xlib/`; `xdraw/xgc/ximage/xutil` are replaced by
    the emulation. `tkStubLib`/`ttkStubLib` are **not** linked into the wish.
 
-7. **Bundle + run** (REQUIRED on macOS — a bare binary gets no window-server
-   connection and renders nothing, logging `CGContextFillRects: invalid context
-   0x0`):
+7. **Bundle + run.** `build.sh` packages a self-contained `undroidwish91.app`
+   automatically. A `.app` bundle is REQUIRED on macOS — a bare binary gets no
+   window-server connection and renders nothing, logging `CGContextFillRects:
+   invalid context 0x0`.
    ```sh
-   # minimal sdl2wish.app: Contents/MacOS/sdl2wish + Contents/Info.plist
-   #   (CFBundleExecutable=sdl2wish, CFBundlePackageType=APPL,
-   #    NSHighResolutionCapable, NSPrincipalClass=NSApplication); codesign -f -s -
-   launchctl setenv TCL_LIBRARY /path/to/tcl9.1b0/library
-   launchctl setenv TK_LIBRARY  /path/to/sdl2tk-9.1/library
-   open sdl2wish.app --args yourscript.tcl
+   open undroidwish91.app --args yourscript.tcl     # no env vars needed
    ```
+   The bundle layout is self-contained and needs **no `TCL_LIBRARY` /
+   `TK_LIBRARY`**:
+   ```
+   undroidwish91.app/Contents/MacOS/undroidwish91
+   undroidwish91.app/Contents/Resources/tcl9.1/     (Tcl 9.1 library, init.tcl)
+   undroidwish91.app/Contents/Resources/tk9.1/      (Tk 9.1 library + fonts/)
+   undroidwish91.app/Contents/Info.plist            (APPL, NSHighResolutionCapable)
+   ```
+
+### Library auto-discovery
+
+`main()` in `tkAppInit.c` calls `UwFindLibraries()` before Tcl initializes. If
+`TCL_LIBRARY` / `TK_LIBRARY` are not already set, it locates the script libraries
+by probing, in order:
+
+1. relative to the executable (`realpath` of `_NSGetExecutablePath`):
+   `../Resources/tcl9.1`, `../lib/tcl9.1`, `../../lib/tcl9.1`, `library`, … (the
+   `../Resources/*` entries cover the `.app` bundle; `../lib/*` covers a normal
+   `<prefix>/bin` + `<prefix>/lib` install), validated by the presence of
+   `init.tcl` (Tcl) / `tk.tcl` (Tk);
+2. common absolute locations: `/opt/homebrew/lib/tcl9.1`,
+   `/usr/local/lib/tcl9.1`, `/Library/Tcl/tcl9.1`, `/usr/lib/tcl9.1` (and the
+   `tk9.1` equivalents).
+
+The first match wins; a caller-provided env var always takes precedence. This is
+why the app runs with no environment setup. (The SDL font discovery in
+`SdlTkUtils.c` reads `$TK_LIBRARY`, which is now populated by this step, so bundled
+fonts are found too.)
 
 ## 5. The port's new source files (in `src/`)
 
@@ -150,9 +174,9 @@ actual object lists and flags):
 - **`.app` bundle is mandatory** for on-screen rendering (see §4.7).
 - **Debugging.** The dummy SDL video driver **hangs** Tk init — use the real Cocoa
   driver. `timeout` is absent on macOS. For crash backtraces, parse
-  `~/Library/Logs/DiagnosticReports/sdl2wish*.ips` (JSON), or run lldb with the
+  `~/Library/Logs/DiagnosticReports/undroidwish91*.ips` (JSON), or run lldb with the
   post-crash commands as `-k` (not `-o`):
-  `lldb -b -o run -k "register read lr" -k "image lookup -v -a \$lr" -k quit -- ./sdl2wish script.tcl`.
+  `lldb -b -o run -k "register read lr" -k "image lookup -v -a \$lr" -k quit -- ./undroidwish91 script.tcl`.
 
 ## 7. Where to resume
 

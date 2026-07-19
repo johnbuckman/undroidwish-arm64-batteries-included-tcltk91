@@ -4,7 +4,7 @@ A work-in-progress port of **undroidwish** — the SDL2-based, batteries-include
 `wish` from [AndroWish](https://www.androwish.org/) — to **Tcl/Tk 9.1b0**,
 built **natively for Apple Silicon (arm64)** on macOS.
 
-> **Status: working proof-of-concept.** A bare `sdl2wish` 9.1 builds, links, and
+> **Status: working proof-of-concept.** A bare `undroidwish91` 9.1 builds, links, and
 > runs natively on arm64 — it initializes Tk, creates widgets, and renders a full
 > window on screen through the SDL2 backend. The ~60 bundled extensions
 > ("batteries") have **not** yet been ported to Tcl 9. See [TODO.md](TODO.md).
@@ -31,7 +31,7 @@ It is the Tcl/Tk-9.1 sibling of the existing 8.6 recipe repo,
 
 ## What works today
 
-- **Tcl 9.1b0** and **Tk 9.1b0** compile and link into a native arm64 `sdl2wish`.
+- **Tcl 9.1b0** and **Tk 9.1b0** compile and link into a native arm64 `undroidwish91`.
 - The whole `sdl2tk` backend (platform layer + AGG/X11 emulation + AGG renderer)
   compiles clean against Tk 9.1.
 - At runtime: `package require Tk` → `9.1b0`, `tk windowingsystem` → `x11`,
@@ -59,9 +59,16 @@ At a high level:
 2. Lay down a work tree: pristine `tk9.1b0` + the grafted `sdl/` and `xlib/`
    backend from AndroWish's `sdl2tk`, with the port patches applied.
 3. Add the three small port source files from [`src/`](src/) to the backend.
-4. Run `build.sh` to compile + link `sdl2wish`.
-5. Wrap it in a minimal `.app` bundle (required on macOS for a window-server
-   connection) and launch via `open`.
+4. Run `build.sh` — it compiles + links the `undroidwish91` executable **and**
+   packages a self-contained `undroidwish91.app`.
+5. Run it: `open undroidwish91.app --args yourscript.tcl`.
+
+The `.app` bundle is **self-contained** — the Tcl/Tk 9.1 script libraries live
+under `Contents/Resources`, and the binary discovers them automatically relative
+to itself, so **`TCL_LIBRARY` / `TK_LIBRARY` do not need to be set**. (If set, they
+win; otherwise the binary also searches common install locations such as
+`/opt/homebrew/lib/tcl9.1`.) A bundle is required on macOS regardless — a bare
+terminal binary gets no window-server connection and renders nothing.
 
 Full step-by-step instructions, dependency locations, and every gotcha are in
 **[AGENTS.md](AGENTS.md)** — written so a human or an AI agent can resume the work.

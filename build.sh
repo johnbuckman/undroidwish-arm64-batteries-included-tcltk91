@@ -1,11 +1,11 @@
 #!/bin/bash
-# Direct build of a bare sdl2wish 9.1 (spike) — no autoconf.
+# Direct build of a undroidwish91 (Tcl/Tk 9.1) — no autoconf.
 export PATH=/usr/bin:/bin:$PATH
 set -u
-W=~/tk9-spike/sdl2tk-9.1
-TCL9=~/tk9-spike/tcl9.1b0
+W=~/undroidwish91/sdl2tk-9.1
+TCL9=~/undroidwish91/tcl9.1b0
 SDL2=~/iwish/build-uw-arm64/SDL2/include
-B=~/tk9-spike/build
+B=~/undroidwish91/build
 mkdir -p "$B"
 
 INC="-I$W/xlib -I$W/sdl -I$W/generic -I$W/generic/ttk -I$W/unix -I$W/bitmaps \
@@ -62,13 +62,13 @@ echo "== archive libsdl2tk9.1.a =="
 ar cr "$B/libsdl2tk9.1.a" "$B"/*.o 2>/dev/null
 # (wish links directly against the .o set below)
 
-echo "== link sdl2wish =="
-clang++ -o "$B/sdl2wish" \
+echo "== link undroidwish91 =="
+clang++ -o "$B/undroidwish91" \
   "$B"/*.o \
   "$TCL9/unix/libtcl9.1.a" \
   ~/iwish/build-uw-arm64/SDL2/build/.libs/libSDL2.a \
   ~/iwish/build-uw-arm64/SDL2/build/.libs/libSDL2main.a \
-  ~/tk9-spike/build/libagg.a \
+  ~/undroidwish91/build/libagg.a \
   /opt/homebrew/lib/libfreetype.dylib \
   -lz -lpthread \
   -framework Cocoa -framework IOKit -framework CoreVideo -framework CoreAudio \
@@ -76,5 +76,40 @@ clang++ -o "$B/sdl2wish" \
   -framework ForceFeedback -framework Metal -framework GameController \
   -framework CoreHaptics -framework CoreGraphics -liconv \
   2>"$B/link.log"
-if [ $? -eq 0 ]; then echo "LINK OK -> $B/sdl2wish"; file "$B/sdl2wish" | sed 's/,.*//';
-else echo "=== LINK ERRORS ==="; grep -iE 'undefined|error|symbol' "$B/link.log" | head -40; fi
+if [ $? -ne 0 ]; then
+  echo "=== LINK ERRORS ==="; grep -iE 'undefined|error|symbol' "$B/link.log" | head -40; exit 1
+fi
+echo "LINK OK -> $B/undroidwish91"; file "$B/undroidwish91" | sed 's/,.*//'
+
+# ---------------------------------------------------------------------------
+# Package a self-contained undroidwish91.app.  The Tcl/Tk 9.1 script libraries
+# are placed under Contents/Resources so the binary finds them relative to
+# itself (see UwFindLibraries() in tkAppInit.c) -- no TCL_LIBRARY / TK_LIBRARY
+# needed.  On macOS a .app bundle is also required for a window-server
+# connection (a bare terminal binary renders nothing).
+# ---------------------------------------------------------------------------
+echo "== package undroidwish91.app =="
+APP="$HOME/undroidwish91/undroidwish91.app"
+rm -rf "$APP"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+cp "$B/undroidwish91"          "$APP/Contents/MacOS/undroidwish91"
+cp -R "$TCL9/library"          "$APP/Contents/Resources/tcl9.1"
+cp -R "$W/library"             "$APP/Contents/Resources/tk9.1"   # includes fonts/
+cat > "$APP/Contents/Info.plist" <<'PLIST'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleExecutable</key><string>undroidwish91</string>
+  <key>CFBundleIdentifier</key><string>org.tcltk.undroidwish91</string>
+  <key>CFBundleName</key><string>undroidwish91</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleShortVersionString</key><string>9.1</string>
+  <key>NSHighResolutionCapable</key><true/>
+  <key>NSPrincipalClass</key><string>NSApplication</string>
+</dict>
+</plist>
+PLIST
+codesign -f -s - "$APP" >/dev/null 2>&1
+echo "APP -> $APP"
+echo "Run:  open $APP --args yourscript.tcl        (no env vars needed)"
