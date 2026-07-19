@@ -36,12 +36,12 @@ into `batteries/` (from the AndroWish assets), with a one-line version-guard pat
 | tktable | **Tktable** | ✅ works (2.11) |
 | treectrl | **treectrl** | ✅ works (2.4.2) |
 | (iwidgets) | **itcl + itk** | ✅ exts work (4.3.8/4.1.0); no standalone demo |
-| tkchat | **tls** ✅ + **Img** + ~25 tcllib | ⬜ blocked on Img |
-| imgdemo | **Img** (tkimg) | ⬜ needs ext (big — see note) |
-| helpviewer | **tkhtml** | ⬜ needs ext |
-| zinc-widget | **Tkzinc** | ⬜ needs ext |
-| tkpdemo | **tkpath** (+cairo) | ⬜ needs ext |
-| vncviewer | **tkvnc** | ⬜ needs ext |
+| tkchat | **tls** ✅ + **Img** + ~25 tcllib | ✅ works |
+| imgdemo | **Img** (tkimg) | ✅ works |
+| helpviewer | **tkhtml** | ✅ works |
+| zinc-widget | **Tkzinc** | ✅ works |
+| tkpdemo | **tkpath** (+cairo) | ✅ works |
+| vncviewer | **tkvnc** | ✅ works |
 | zint | **zint** | ⬜ needs ext |
 | borgdemo | **borg** | ⬜ needs ext |
 | bledemo | **ble** (CoreBluetooth) | ⬜ needs ext |
