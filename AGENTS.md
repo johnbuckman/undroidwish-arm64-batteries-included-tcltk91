@@ -191,9 +191,11 @@ fonts are found too.)
   `TkUnix*` names): `Tk_MakeWindow`, `Tk_UseWindow`, `Tk_GetOtherWindow`,
   `Tk_MakeContainer`, `Tk_GetSystemDefault`, `Tk_DrawHighlightBorder`,
   `TkUnixContainerId`, `TkUnixDoOneXEvent`, `TkUnixSetMenubar`,
-  `Tk_DrawCharsInContext`, `Tk_MeasureCharsInContext`. Also stubs `TkpSetCapture`,
-  `TkpGetCapture`, `TkpWindowIsDark`, and defines the `ttkDefScrollbarWidth` /
-  `ttkMinThumbSize` globals.
+  `Tk_DrawCharsInContext`, `Tk_MeasureCharsInContext`. Also implements
+  `TkpSetCapture` / `TkpGetCapture` (see §6, capture release), stubs
+  `TkpWindowIsDark`, defines the `ttkDefScrollbarWidth` / `ttkMinThumbSize`
+  globals, and provides the env-gated `uwsynthmouse` test command
+  (`UW_SYNTHMOUSE=1`) used by `tests/wm-regression.tcl`.
 - **`tkSDLXstubs.c`** — the X Input-Method / XKB / font-set surface Tk 9.1 grew
   (`XOpenIM`, `XCreateFontSet`, `XSetLocaleModifiers`, `XkbKeycodeToKeysym`, …) as
   no-op stubs (SDL2 handles IME/keyboard natively), plus plain-name aliases for
@@ -214,6 +216,34 @@ fonts are found too.)
   `tk_library` Tcl var, so the font-discovery `glob` script failed with
   `can't read "tk_library"`. **Fix:** in `SdlTkFontInit`, seed `tk_library` from
   `getenv("TK_LIBRARY")` before the eval.
+- **Capture release killed window management.** Tk 9.1's generic `tkPointer.c`
+  takes an implicit pointer grab on every ButtonPress (`TkpSetCapture(winPtr)`)
+  and releases it with **`TkpSetCapture(NULL)`**. The first shim ignored the NULL
+  case, so `SdlTkX.capture_window` stayed set forever after the first click in any
+  widget; `SdlTkGrabCheck()` then returned false for every decorative frame and
+  windows could no longer be moved, resized or closed (widgets kept working, which
+  makes this look like a decoration bug). **Fix:** route NULL to
+  `TkpSetCaptureEx(<capture window's display>, NULL)` — note it must be the
+  *capturing window's* `Display`, since sdl2tk hands out one `Display` per
+  interpreter (console vs. main) and `TkpSetCaptureEx` answers `GrabFrozen` on a
+  mismatch. Regression test: `tests/wm-regression.tcl`.
+- **Pristine `generic/` silently drops AndroWish hooks.** Building on *pristine*
+  Tk 9.1 `generic/` loses every `#ifdef PLATFORM_SDL` hunk AndroWish had there.
+  Re-applied so far (`patches/tk91-generic-platform-sdl.patch`): the DejaVu / Droid
+  / Noto **font alias + fallback tables** in `tkFont.c` (without them XLFD names
+  like `-*-dejavu sans-...` don't resolve — the bundled family is actually
+  *"DejaVu LGC Sans"* — so decorative-frame **window titles render blank**), the
+  DPI-max **font sizing** in `TkFontGetPixels`/`TkFontGetPoints`, registration of
+  the **`sdltk` ensemble** in the `tkWindow.c` command table (its 35 subcommand
+  procs must be re-typed to `Tcl_Size objc` — Tk 9.1's `TkEnsemble` holds
+  `Tcl_ObjCmdProc2 *`), and the **`-sdl*` argv options** in `Tk_Init`'s
+  `Tcl_ArgvInfo` table. Still unreviewed: `tkBind.c`, `tkCmds.c`,
+  `tkImgPhInstance.c`, `tkGrab.c`, `tkPointer.c`, `tkEvent.c`, ttk themes.
+- **Head-less UI testing.** Don't drive the real pointer: `uwsynthmouse
+  down|up|move|hover x y ?-x?` (registered only when `UW_SYNTHMOUSE` is set)
+  pushes synthetic SDL mouse events; `-x` means the coordinates are X-screen
+  coordinates (translated back through the device mapping). `uwsynthmouse state`
+  dumps capture/focus/window-flag state. `UW_EVLOG=1` traces `SDL_WINDOWEVENT`s.
 - **`int` vs `Tcl_Size`.** `Tcl_ListObjGetElements` in Tcl 9 writes a `Tcl_Size`;
   passing `&objc` where `objc` is `int` corrupts the stack. Thread `Tcl_Size`
   through. (This pattern recurs across the extensions.)

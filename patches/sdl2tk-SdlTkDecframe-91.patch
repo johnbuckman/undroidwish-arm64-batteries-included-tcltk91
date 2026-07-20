@@ -1,0 +1,14 @@
+--- a/sdl/SdlTkDecframe.c
++++ b/sdl/SdlTkDecframe.c
+@@ -475,7 +475,10 @@
+ 	    _DFInfo.last_hit = hit;
+ 	    switch (hit) {
+ 	    case DEC_HIT_TITLE:
+-		_c.shape = SDL_SYSTEM_CURSOR_HAND;
++		/* iwish: 4-way "move" cursor (fleur) over the title bar, so the
++		 * pointer morphs to the move shape both on hover and while
++		 * dragging the whole window (the drag keeps the last-set cursor). */
++		_c.shape = SDL_SYSTEM_CURSOR_SIZEALL;
+ 		break;
+ 	    case DEC_HIT_NW:
+ 	    case DEC_HIT_SE:

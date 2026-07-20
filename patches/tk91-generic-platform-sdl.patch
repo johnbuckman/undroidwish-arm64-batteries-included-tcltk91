@@ -1,0 +1,268 @@
+--- a/generic/tkFont.c
++++ b/generic/tkFont.c
+@@ -196,6 +196,13 @@
+  */
+ 
+ static const char *const timesAliases[] = {
++#ifdef PLATFORM_SDL
++    "DejaVu Serif",
++    "DejaVu LGC Serif",
++    "Droid Serif",
++    "Noto Serif",
++    "Liberation Serif",
++#endif
+     "Times",			/* Unix. */
+     "Times New Roman",		/* Windows. */
+     "New York",			/* Mac. */
+@@ -203,6 +210,15 @@
+ };
+ 
+ static const char *const helveticaAliases[] = {
++#ifdef PLATFORM_SDL
++    "DejaVu Sans",
++    "DejaVu LGC Sans",
++    "Roboto",
++    "Droid Sans Fallback",
++    "Droid Sans",
++    "Noto Sans",
++    "Liberation Sans",
++#endif
+     "Helvetica",		/* Unix. */
+     "Arial",			/* Windows. */
+     "Geneva",			/* Mac. */
+@@ -210,6 +226,12 @@
+ };
+ 
+ static const char *const courierAliases[] = {
++#ifdef PLATFORM_SDL
++    "DejaVu Sans Mono",
++    "DejaVu LGC Sans Mono",
++    "Droid Sans Mono",
++    "Liberation Mono",
++#endif
+     "Courier",			/* Unix and Mac. */
+     "Courier New",		/* Windows. */
+     NULL
+@@ -234,6 +256,10 @@
+ };
+ 
+ static const char *const dingbatsAliases[] = {
++#ifdef PLATFORM_SDL
++    "symbola",
++    "android emoji",
++#endif
+     "dingbats", "zapfdingbats", "itc zapfdingbats",
+ 				/* Unix. */
+ 				/* Windows. */
+@@ -266,6 +292,10 @@
+ };
+ 
+ static const char *const serifClass[] = {
++#ifdef PLATFORM_SDL
++    "droid serif", "noto serif",
++    "dejavu lgc serif", "dejavu serif", "liberation serif",
++#endif
+     "times", "palatino", "mincho",
+ 				/* All platforms. */
+     "song ti",			/* Unix. */
+@@ -276,6 +306,18 @@
+ };
+ 
+ static const char *const sansClass[] = {
++#ifdef PLATFORM_SDL
++    "droid sans fallback", "droid sans",
++    "droid sans hebrew", "droid arabic kufi",
++    "droid arabic nashk",
++    "droid sans japanese", "droid sans thai",
++    "droid sans armenian", "droid sans ethiopic",
++    "droid sans georgian", "roboto", "roboto cn",
++    "noto sans armenian", "noto sans devanagari",
++    "noto sans ethiopic", "noto sans georgian",
++    "noto sans lao", "noto sans tamil", "noto sans thai",
++    "dejavu lgc sans", "dejavu sans", "liberation sans",
++#endif
+     "helvetica", "gothic",	/* All platforms. */
+ 				/* Unix. */
+     "ms sans serif", "traditional arabic",
+@@ -285,6 +327,10 @@
+ };
+ 
+ static const char *const monoClass[] = {
++#ifdef PLATFORM_SDL
++    "droid sans mono",
++    "dejavu lgc sans mono", "dejavu sans mono", "liberation mono",
++#endif
+     "courier", "gothic",	/* All platforms. */
+     "fangsong ti",		/* Unix. */
+     "simplified arabic fixed",	/* Windows. */
+@@ -293,6 +339,10 @@
+ };
+ 
+ static const char *const symbolClass[] = {
++#ifdef PLATFORM_SDL
++    "symbola",
++    "android emoji",
++#endif
+     "symbol", "dingbats", "wingdings", NULL
+ };
+ 
+@@ -312,6 +362,14 @@
+  */
+ 
+ static const char *const globalFontClass[] = {
++#ifdef PLATFORM_SDL
++    "droid sans fallback",
++    "droid arabic nashk",
++    "droid sans hebrew", "droid sans", "roboto",
++    "noto sans",
++    "dejavu lgc sans", "dejavu sans", "liberation sans",
++    "symbola",
++#endif
+     "symbol",			/* All platforms. */
+ 				/* Unix. */
+     "lucida sans unicode",	/* Windows. */
+@@ -4202,14 +4260,32 @@
+     double size)		/* Font size. */
+ {
+     double d;
++#ifdef PLATFORM_SDL
++    double d2;
++#endif
+ 
+     if (size <= 0.0) {
+ 	return -size;
+     }
+ 
++#ifdef PLATFORM_SDL
++    /*
++     * sdl2tk: take the LARGER of the horizontal and vertical DPI so point
++     * sizes stay legible on displays whose pixels aren't square (and on the
++     * SDL virtual screen, whose mm dimensions are derived from the real DPI).
++     */
++    d2 = size * 25.4 / 72.0;
++    d2 *= HeightOfScreen(Tk_Screen(tkwin));
++    d2 /= HeightMMOfScreen(Tk_Screen(tkwin));
++#endif
+     d = size * 25.4 / 72.0;
+     d *= WidthOfScreen(Tk_Screen(tkwin));
+     d /= WidthMMOfScreen(Tk_Screen(tkwin));
++#ifdef PLATFORM_SDL
++    if (d2 > d) {
++	d = d2;
++    }
++#endif
+     return d;
+ }
+ 
+@@ -4236,14 +4312,27 @@
+     double size)		/* Font size. */
+ {
+     double d;
++#ifdef PLATFORM_SDL
++    double d2;
++#endif
+ 
+     if (size >= 0.0) {
+ 	return size;
+     }
+ 
++#ifdef PLATFORM_SDL
++    d2 = -size * 72.0 / 25.4;
++    d2 *= HeightMMOfScreen(Tk_Screen(tkwin));
++    d2 /= HeightOfScreen(Tk_Screen(tkwin));
++#endif
+     d = -size * 72.0 / 25.4;
+     d *= WidthMMOfScreen(Tk_Screen(tkwin));
+     d /= WidthOfScreen(Tk_Screen(tkwin));
++#ifdef PLATFORM_SDL
++    if (d2 < d) {
++	d = d2;
++    }
++#endif
+     return d;
+ }
+ 
+--- a/generic/tkWindow.c
++++ b/generic/tkWindow.c
+@@ -13,6 +13,10 @@
+  */
+ 
+ #include "tkInt.h"
++#ifdef PLATFORM_SDL
++#include "SdlTkInt.h"
++MODULE_SCOPE int TkInitSdltkCmd(Tcl_Interp *interp, void *clientData);
++#endif
+ #include "tkPort.h"
+ #ifdef _WIN32
+ #include "tkWinInt.h"
+@@ -125,6 +129,10 @@
+     {"pack",		Tk_PackObjCmd,		PASSMAINWINDOW|ISSAFE},
+     {"place",		Tk_PlaceObjCmd,		PASSMAINWINDOW|ISSAFE},
+     {"raise",		Tk_RaiseObjCmd,		PASSMAINWINDOW|ISSAFE},
++#ifdef PLATFORM_SDL
++    {"sdltk",		(Tcl_ObjCmdProc2 *)(void *)TkInitSdltkCmd,
++					USEINITPROC|PASSMAINWINDOW|ISSAFE},
++#endif
+     {"selection",	Tk_SelectionObjCmd,	PASSMAINWINDOW},
+     {"tk",		(Tcl_ObjCmdProc2 *)(void *)TkInitTkCmd,  USEINITPROC|PASSMAINWINDOW|ISSAFE},
+     {"tkwait",		Tk_TkwaitObjCmd,	PASSMAINWINDOW|ISSAFE},
+@@ -3217,6 +3225,43 @@
+ 		"Visual for main window", NULL},
+ 	{TCL_ARGV_FUNC, "-use", (void *)CopyValue, &useObj,
+ 		"Id of window in which to embed application", NULL},
++#ifdef PLATFORM_SDL
++	/*
++	 * undroidwish/AndroWish SDL backend options (8.6 sdl2tk parity).
++	 */
++	{TCL_ARGV_CONSTANT, "-sdlfullscreen", INT2PTR(1),
++		&SdlTkX.arg_fullscreen, "SDL fullscreen mode", NULL},
++	{TCL_ARGV_CONSTANT, "-sdlresizable", INT2PTR(1),
++		&SdlTkX.arg_resizable, "SDL window resizable", NULL},
++	{TCL_ARGV_CONSTANT, "-sdlfixedsize", INT2PTR(0),
++		&SdlTkX.arg_resizable, "SDL window NOT resizable", NULL},
++	{TCL_ARGV_CONSTANT, "-sdlnoborder", INT2PTR(1),
++		&SdlTkX.arg_noborder, "SDL borderless window", NULL},
++	{TCL_ARGV_CONSTANT, "-sdlnogl", INT2PTR(1), &SdlTkX.arg_nogl,
++		"SDL force software renderer", NULL},
++	{TCL_ARGV_CONSTANT, "-sdlnosysfonts", INT2PTR(1),
++		&SdlTkX.arg_nosysfonts, "Don't load system fonts", NULL},
++	{TCL_ARGV_CONSTANT, "-sdlswcursor", INT2PTR(1), &SdlTkX.arg_swcursor,
++		"Use software cursor", NULL},
++	{TCL_ARGV_INT, "-sdlxdpi", NULL, &SdlTkX.arg_xdpi,
++		"SDL screen DPI in X", NULL},
++	{TCL_ARGV_INT, "-sdlydpi", NULL, &SdlTkX.arg_ydpi,
++		"SDL screen DPI in Y", NULL},
++	{TCL_ARGV_INT, "-sdllog", NULL, &SdlTkX.arg_sdllog,
++		"SDL log level", NULL},
++	{TCL_ARGV_INT, "-sdlopacity", NULL, &SdlTkX.arg_opacity,
++		"Opacity of SDL root window in percent", NULL},
++	{TCL_ARGV_STRING, "-sdlwidth", NULL, &SdlTkX.arg_width,
++		"Width of SDL desktop", NULL},
++	{TCL_ARGV_STRING, "-sdlheight", NULL, &SdlTkX.arg_height,
++		"Height of SDL desktop", NULL},
++	{TCL_ARGV_STRING, "-sdlrootwidth", NULL, &SdlTkX.arg_rootwidth,
++		"Width of SDL root window", NULL},
++	{TCL_ARGV_STRING, "-sdlrootheight", NULL, &SdlTkX.arg_rootheight,
++		"Height of SDL root window", NULL},
++	{TCL_ARGV_STRING, "-sdlicon", NULL, &SdlTkX.arg_icon,
++		"File name of BMP icon", NULL},
++#endif
+ 	TCL_ARGV_AUTO_REST, TCL_ARGV_AUTO_HELP, TCL_ARGV_TABLE_END
+     };
+ 
+@@ -3328,6 +3373,15 @@
+ 
+ 	value = Tcl_GetVar2Ex(interp, "argv", NULL, TCL_GLOBAL_ONLY);
+     }
++
++#if defined(PLATFORM_SDL) && defined(__APPLE__) && !defined(ANDROID)
++    /*
++     * undroidwish91: on the macOS desktop the SDL desktop window is resizable
++     * by default (8.6 needed an explicit -sdlresizable, which a double-clicked
++     * .app cannot pass).  -sdlfixedsize restores the old behaviour.
++     */
++    SdlTkX.arg_resizable = 1;
++#endif
+ 
+     if (value) {
+ 	Tcl_Size objc;

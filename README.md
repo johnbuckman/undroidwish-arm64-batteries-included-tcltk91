@@ -47,6 +47,10 @@ It is the Tcl/Tk-9.1 sibling of the existing 8.6 recipe repo,
   (24 dylibs)**, Tkzinc, tkpath, tkvnc — plus the non-demo batteries
   parse_args, pikchr, parser, tksvg, tclcsv, vfs, udp, Memchan.
 - **Bluetooth** (the `ble` battery / bledemo) scans and finds real devices.
+- **Window management**: decorative frames move, resize and close; the `sdltk`
+  command and the `-sdl*` command-line options are wired up; window titles and
+  the active-window highlight render; the macOS desktop window is resizable by
+  default (`-sdlfixedsize` restores the 8.6 behaviour).
 
 ## What does **not** work yet
 
@@ -62,6 +66,11 @@ It is the Tcl/Tk-9.1 sibling of the existing 8.6 recipe repo,
 - No autoconf integration, no notarized `.app`/DMG yet (built with a direct
   script, see below).
 - Touch-friendly ttk scrollbar sizing is not yet re-wired (uses 9.1 defaults).
+- Only some of the AndroWish `generic/` `#ifdef PLATFORM_SDL` hunks have been
+  re-applied to pristine Tk 9.1 (see
+  [`patches/tk91-generic-platform-sdl.patch`](patches/tk91-generic-platform-sdl.patch));
+  the rest of that surface (tkBind, tkCmds, tkImgPhInstance, ttk themes, …) is
+  still unreviewed.
 
 ## Building
 
@@ -105,7 +114,8 @@ Full step-by-step instructions, dependency locations, and every gotcha are in
 | [`ext-build/BUILD-Img.md`](ext-build/BUILD-Img.md) | The coordinated 24-package tkimg (Img) build recipe |
 | [`ext-build/NON-DEMO-BATTERIES.md`](ext-build/NON-DEMO-BATTERIES.md) | Non-demo battery status + Tcl-9 failure taxonomy |
 | [`src/`](src/) | New source files authored for the 9.1 port (compat bridges + stubs) |
-| [`patches/`](patches/) | (Reserved) unified diffs of the changes to vendored sources |
+| [`patches/`](patches/) | Unified diffs of the changes to the vendored Tk 9.1 `generic/` and AndroWish `sdl/` sources |
+| [`tests/wm-regression.tcl`](tests/wm-regression.tcl) | Head-less window-management test (synthetic SDL mouse events, no real pointer) |
 | [`build.sh`](build.sh) | The direct build/link script |
 | [`LICENSE`](LICENSE) | Tcl/Tk (BSD-style) license |
 

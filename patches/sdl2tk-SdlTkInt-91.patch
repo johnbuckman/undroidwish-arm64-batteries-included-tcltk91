@@ -1,0 +1,387 @@
+--- a/sdl/SdlTkInt.c
++++ b/sdl/SdlTkInt.c
+@@ -2266,6 +2266,12 @@
+ #endif
+ 
+ 	sdlwin = SDL_GetWindowFromID(sdl_event->window.windowID);
++	if (getenv("UW_EVLOG") != NULL) {
++	    fprintf(stderr, "[uw] WINDOWEVENT %d win=%p screen=%p match=%d\n",
++		    (int) sdl_event->window.event, (void *) sdlwin,
++		    (void *) SdlTkX.sdlscreen, sdlwin == SdlTkX.sdlscreen);
++	    fflush(stderr);
++	}
+ 	if (sdlwin != SdlTkX.sdlscreen) {
+ 	    /*
+ 	     * Maybe another window used for OpenGL rendering,
+@@ -3955,7 +3961,7 @@
+ 
+ static int
+ AccelbufferObjCmd(ClientData clientData, Tcl_Interp *interp,
+-		  int objc, Tcl_Obj *const objv[])
++		  Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     int axis;
+     Tcl_Obj *list;
+@@ -3997,7 +4003,7 @@
+ 
+ static int
+ AccelerometerObjCmd(ClientData clientData, Tcl_Interp *interp,
+-		    int objc, Tcl_Obj *const objv[])
++		    Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     int flag = 0;
+ 
+@@ -4029,7 +4035,7 @@
+ 
+ static int
+ AddfontObjCmd(ClientData clientData, Tcl_Interp *interp,
+-	      int objc, Tcl_Obj *const objv[])
++	      Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     if (objc != 2) {
+ 	Tcl_WrongNumArgs(interp, 1, objv, "filename");
+@@ -4040,7 +4046,7 @@
+ 
+ static int
+ AndroidObjCmd(ClientData clientData, Tcl_Interp *interp,
+-	      int objc, Tcl_Obj *const objv[])
++	      Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     if (objc != 1) {
+ 	Tcl_WrongNumArgs(interp, 1, objv, "");
+@@ -4056,7 +4062,7 @@
+ 
+ static int
+ DeiconifyObjCmd(ClientData clientData, Tcl_Interp *interp,
+-	       int objc, Tcl_Obj *const objv[])
++	       Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     if (objc != 1) {
+ 	Tcl_WrongNumArgs(interp, 1, objv, "");
+@@ -4068,7 +4074,7 @@
+ 
+ static int
+ ExposeObjCmd(ClientData clientData, Tcl_Interp *interp,
+-	     int objc, Tcl_Obj *const objv[])
++	     Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     Tk_Window tkwin = (Tk_Window) clientData;
+     int x, y;
+@@ -4117,7 +4123,7 @@
+ 
+ static int
+ FontsObjCmd(ClientData clientData, Tcl_Interp *interp,
+-	       int objc, Tcl_Obj *const objv[])
++	       Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     if (objc != 1) {
+ 	Tcl_WrongNumArgs(interp, 1, objv, "");
+@@ -4128,7 +4134,7 @@
+ 
+ static int
+ FramebufferObjCmd(ClientData clientData, Tcl_Interp *interp,
+-		  int objc, Tcl_Obj *const objv[])
++		  Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     if (objc != 1) {
+ 	Tcl_WrongNumArgs(interp, 1, objv, "");
+@@ -4140,7 +4146,7 @@
+ 
+ static int
+ FullscreenObjCmd(ClientData clientData, Tcl_Interp *interp,
+-	       int objc, Tcl_Obj *const objv[])
++	       Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     if (objc != 1) {
+ 	Tcl_WrongNumArgs(interp, 1, objv, "");
+@@ -4152,7 +4158,7 @@
+ 
+ static int
+ HasglObjCmd(ClientData clientData, Tcl_Interp *interp,
+-	    int objc, Tcl_Obj *const objv[])
++	    Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     if (objc != 1) {
+ 	Tcl_WrongNumArgs(interp, 1, objv, "");
+@@ -4164,7 +4170,7 @@
+ 
+ static int
+ IconifyObjCmd(ClientData clientData, Tcl_Interp *interp,
+-	       int objc, Tcl_Obj *const objv[])
++	       Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     if (objc != 1) {
+ 	Tcl_WrongNumArgs(interp, 1, objv, "");
+@@ -4176,7 +4182,7 @@
+ 
+ static int
+ IsAndroidTVObjCmd(ClientData clientData, Tcl_Interp *interp,
+-		  int objc, Tcl_Obj *const objv[])
++		  Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     int flag = 0;
+ 
+@@ -4193,7 +4199,7 @@
+ 
+ static int
+ IsChromebookObjCmd(ClientData clientData, Tcl_Interp *interp,
+-		   int objc, Tcl_Obj *const objv[])
++		   Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     int flag = 0;
+ 
+@@ -4210,7 +4216,7 @@
+ 
+ static int
+ JoystickObjCmd(ClientData clientData, Tcl_Interp *interp,
+-	       int objc, Tcl_Obj *const objv[])
++	       Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     static const char *joptStrings[] = {
+ 	"ids", "guid", "name", "numaxes", "numballs",
+@@ -4325,7 +4331,7 @@
+ 
+ static int
+ LogObjCmd(ClientData clientData, Tcl_Interp *interp,
+-	  int objc, Tcl_Obj *const objv[])
++	  Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     int prio = SDL_LOG_PRIORITY_VERBOSE;
+     const char *prioStr;
+@@ -4355,7 +4361,7 @@
+ 
+ static int
+ MaximizeObjCmd(ClientData clientData, Tcl_Interp *interp,
+-	       int objc, Tcl_Obj *const objv[])
++	       Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     if (objc != 1) {
+ 	Tcl_WrongNumArgs(interp, 1, objv, "");
+@@ -4367,7 +4373,7 @@
+ 
+ static int
+ MaxrootObjCmd(ClientData clientData, Tcl_Interp *interp,
+-	      int objc, Tcl_Obj *const objv[])
++	      Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     SDL_RendererInfo ri;
+     char buffer[128];
+@@ -4386,7 +4392,7 @@
+ 
+ static int
+ OpacityObjCmd(ClientData clientData, Tcl_Interp *interp,
+-	      int objc, Tcl_Obj *const objv[])
++	      Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     if (objc > 2) {
+ 	Tcl_WrongNumArgs(interp, 1, objv, "?value?");
+@@ -4412,7 +4418,7 @@
+ 
+ static int
+ PaintvisrgnObjCmd(ClientData clientData, Tcl_Interp *interp,
+-		  int objc, Tcl_Obj *const objv[])
++		  Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     Tk_Window tkwin = (Tk_Window) clientData;
+     int x, y;
+@@ -4524,7 +4530,7 @@
+ 
+ static int
+ PowerinfoObjCmd(ClientData clientData, Tcl_Interp *interp,
+-		int objc, Tcl_Obj *const objv[])
++		Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     SDL_PowerState pst;
+     int secs, pct;
+@@ -4606,7 +4612,7 @@
+ 
+ static int
+ BorgtoastObjCmd(ClientData clientData, Tcl_Interp *interp,
+-		int objc, Tcl_Obj *const objv[])
++		Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     Tk_Window tkwin = (Tk_Window) clientData;
+     Tk_Window toast;
+@@ -4708,7 +4714,7 @@
+ 
+ static int
+ RestoreObjCmd(ClientData clientData, Tcl_Interp *interp,
+-	       int objc, Tcl_Obj *const objv[])
++	       Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     if (objc != 1) {
+ 	Tcl_WrongNumArgs(interp, 1, objv, "");
+@@ -4720,7 +4726,7 @@
+ 
+ static int
+ RootObjCmd(ClientData clientData, Tcl_Interp *interp,
+-	   int objc, Tcl_Obj *const objv[])
++	   Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     int w, h;
+     char buffer[128];
+@@ -4762,7 +4768,7 @@
+ 
+ static int
+ SizeObjCmd(ClientData clientData, Tcl_Interp *interp,
+-	   int objc, Tcl_Obj *const objv[])
++	   Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     int w, h;
+     char buffer[128];
+@@ -4799,7 +4805,7 @@
+  * distinct from `sdltk size` which reports the SDL window size. */
+ static int
+ ScreensizeObjCmd(ClientData clientData, Tcl_Interp *interp,
+-		 int objc, Tcl_Obj *const objv[])
++		 Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     char buffer[128];
+     sprintf(buffer, "%d %d",
+@@ -4811,7 +4817,7 @@
+ 
+ static int
+ ScreensaverObjCmd(ClientData clientData, Tcl_Interp *interp,
+-		  int objc, Tcl_Obj *const objv[])
++		  Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     int flag;
+ 
+@@ -4840,7 +4846,7 @@
+ 
+ static int
+ StatObjCmd(ClientData clientData, Tcl_Interp *interp,
+-	   int objc, Tcl_Obj *const objv[])
++	   Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     Tk_Window tkwin = (Tk_Window) clientData;
+     Display *display;
+@@ -4883,7 +4889,7 @@
+ 
+ static int
+ TextinputObjCmd(ClientData clientData, Tcl_Interp *interp,
+-		int objc, Tcl_Obj *const objv[])
++		Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     static int last_hints = 0;
+     int flag = 0, hints = 0, hints_changed = 0, ret = TCL_OK;
+@@ -4961,7 +4967,7 @@
+ 
+ static int
+ TouchcalibObjCmd(ClientData clientData, Tcl_Interp *interp,
+-		 int objc, Tcl_Obj *const objv[])
++		 Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     int i, calib[5];
+ 
+@@ -5011,7 +5017,7 @@
+ 
+ static int
+ TouchtranslateObjCmd(ClientData clientData, Tcl_Interp *interp,
+-		     int objc, Tcl_Obj *const objv[])
++		     Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+ #ifdef ANDROID
+     int flag = TranslateInfo.enabled;
+@@ -5051,7 +5057,7 @@
+ 
+ static int
+ ViewportObjCmd(ClientData clientData, Tcl_Interp *interp,
+-	       int objc, Tcl_Obj *const objv[])
++	       Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     int x, y, w, h;
+     char buffer[128];
+@@ -5098,7 +5104,7 @@
+ 
+ static int
+ VRModeObjCmd(ClientData clientData, Tcl_Interp *interp,
+-	    int objc, Tcl_Obj *const objv[])
++	    Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     int mode;
+     float distortion = 0.25, rescale = 0.9;
+@@ -5166,7 +5172,7 @@
+ 
+ static int
+ VsyncObjCmd(ClientData clientData, Tcl_Interp *interp,
+-	    int objc, Tcl_Obj *const objv[])
++	    Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     int frame_count;
+ 
+@@ -5188,7 +5194,7 @@
+ 
+ static int
+ WithdrawObjCmd(ClientData clientData, Tcl_Interp *interp,
+-	       int objc, Tcl_Obj *const objv[])
++	       Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     if (objc != 1) {
+ 	Tcl_WrongNumArgs(interp, 1, objv, "");
+@@ -5201,7 +5207,7 @@
+ 
+ static int
+ PointerObjCmd(ClientData clientData, Tcl_Interp *interp,
+-	      int objc, Tcl_Obj *const objv[])
++	      Tcl_Size objc, Tcl_Obj *const objv[])
+ {
+     int mode;
+ 
+@@ -5687,4 +5693,56 @@
+  * c-basic-offset: 4
+  * fill-column: 78
+  * End:
++ */
++
++/* Debug/test helper: expose the device<->X coordinate mapping. */
++void
++SdlTkTranslatePointerPub(int rev, int *x, int *y)
++{
++    TranslatePointer(rev, x, y);
++}
++
++/*
++ * Capture (implicit pointer grab) helpers for the Tk 9.1 platform hooks.
++ * Tk 9.1's generic tkPointer.c calls TkpSetCapture(NULL) to *release* the
++ * capture; the SDL backend's native entry point is TkpSetCaptureEx(), which
++ * needs a Display.  Only one display exists here, so supply it.
+  */
++int SdlTkDbgRelCount = 0, SdlTkDbgSetCount = 0;
++
++void
++SdlTkReleaseCapture(void)
++{
++    SdlTkDbgRelCount++;
++    if (SdlTkX.capture_window != NULL) {
++	/*
++	 * Release against the *capturing window's* display: sdl2tk hands out
++	 * one Display per interpreter (console vs. main), and TkpSetCaptureEx
++	 * refuses (GrabFrozen) when the display doesn't match the holder's.
++	 */
++	TkpSetCaptureEx(SdlTkX.capture_window->display, NULL);
++    }
++}
++
++Tk_Window
++SdlTkGetCapture(void)
++{
++    return (Tk_Window) SdlTkX.capture_window;
++}
++
++/* Debug/test helper: report pointer-grab related state. */
++void
++SdlTkDebugGrabState(char *buf, int len)
++{
++    extern int SdlTkDbgRelCount, SdlTkDbgSetCount;
++
++    snprintf(buf, len,
++	     "winflags=0x%x resizable=%d rel=%d set=%d sdlfocus=%d focus_nov=%p capture=%p keyboard=%p "
++	     "mouse_win=%p focus=%p",
++	     (unsigned) SDL_GetWindowFlags(SdlTkX.sdlscreen),
++	     (SDL_GetWindowFlags(SdlTkX.sdlscreen) & SDL_WINDOW_RESIZABLE) != 0,
++	     SdlTkDbgRelCount, SdlTkDbgSetCount, SdlTkX.sdlfocus,
++	     (void *) SdlTkX.focus_window_not_override,
++	     (void *) SdlTkX.capture_window, (void *) SdlTkX.keyboard_window,
++	     (void *) SdlTkX.mouse_window, (void *) SdlTkX.focus_window);
++}
