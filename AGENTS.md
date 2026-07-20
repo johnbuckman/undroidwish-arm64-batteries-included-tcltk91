@@ -1,5 +1,8 @@
 # AGENTS.md — status, build recipe, and resume notes
 
+> **Resuming cold?** Read [`BOOTSTRAP.md`](BOOTSTRAP.md) first — it maps the
+> machine layout, the rebuild + headless-verification recipes, and the open work.
+
 This document is written for an AI coding agent (or a human) picking up this port.
 It states exactly what works, how to build it from scratch, the non-obvious
 gotchas discovered along the way, and where to resume.

@@ -104,6 +104,7 @@ Full step-by-step instructions, dependency locations, and every gotcha are in
 | Path | What it is |
 |------|-----------|
 | [`README.md`](README.md) | This file |
+| [`BOOTSTRAP.md`](BOOTSTRAP.md) | **Start here to resume the work cold** — machine layout, rebuild + headless-verification recipes, what's done, what's open |
 | [`AGENTS.md`](AGENTS.md) | Detailed status + full build recipe + resume notes (for humans and AI) |
 | [`TODO.md`](TODO.md) | Remaining work to reach a shippable build |
 | [`main.tcl`](main.tcl) | Bare-launch boot script (console + Demos menu + window placement) |
