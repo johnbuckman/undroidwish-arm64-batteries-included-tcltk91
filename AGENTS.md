@@ -23,23 +23,81 @@ essentially stable, and AndroWish's changes to Tk are almost entirely confined t
 the platform layer it already forks (`generic/` is only ~50 marker lines patched).
 So the port is "re-fork ~17 platform files + reconcile signatures", not a rewrite.
 
-## 2. Current status (proof-of-concept COMPLETE)
+## 2. Current status — ALL 17 DEMOS WORKING, batteries substantially ported
 
-Works:
+Core (done):
 - **Tcl 9.1b0** builds native arm64; **Tk 9.1** + the full `sdl2tk` backend
   (all 30 `.c` + `SdlTkAGG.cpp`) compile clean against Tk 9.1.
-- Links into a native arm64 `undroidwish91`.
-- Runtime: `package require Tk` → `9.1b0`; `tk windowingsystem` → `x11`; widgets
-  (label, button, entry, checkbutton, scale) create and render; the event loop
-  runs; clean exit. Fonts discovered (system + bundled DejaVu) and rendered via
-  FreeType.
-- A window is visibly rendered on screen (Retina) when launched as a `.app` bundle.
+- Links into a native arm64 `undroidwish91`; runs as a self-contained `.app`
+  (a bundle is **required** on macOS for a window-server connection).
+- Bare launch reproduces undroidwish: console + Tk window + **Demos ▸** menu,
+  bundled icon, and auto-discovery of the Tcl/Tk 9.1 script libraries (no
+  `TCL_LIBRARY`/`TK_LIBRARY` needed).
+
+**Demos: 17 of 17 enabled and working** (was 1): widget, tkcon, tkinspect,
+notebook, tksqlite, stardom, tktable, treectrl, tkchat, zint, imgdemo,
+borgdemo, bledemo, helpviewer, zinc-widget, tkpdemo, vncviewer.
+
+**C-extension stacks ported for the demos (13):** sqlite3 3.50.4, tdom 0.9.3,
+Tktable 2.11, treectrl 2.4.2, tls 1.7.22, itcl 4.3.8 + itk 4.1.0 (+iwidgets),
+borg 1.0, zint 2.13.0, tkhtml 3.0, **Img/tkimg 1.4.11 (24 dylibs)**,
+Tkzinc 3.3.6, tkpath 0.3.3, tkvnc 0.5.
+
+**Non-demo batteries ported (8):** parse_args 0.5.1, pikchr 1.0, parser 1.8,
+tksvg 0.14, tclcsv 2.3, vfs 1.4.2, udp 1.0.11, Memchan 2.4.
+
+Caveats / known issues:
+- **Not self-contained:** tls links Homebrew openssl@3; tkpath links Homebrew
+  cairo (same trade-off as the 8.6 build's Homebrew-dependent extensions).
+- **PNG *write*** SIGSEGVs inside libpng (`png_write_info_before_PLTE`); the
+  read path (what imgdemo uses) is fine. See `ext-build/BUILD-Img.md`.
+- **Bluetooth requires `NSBluetoothAlwaysUsageDescription`** in the app's
+  Info.plist (build.sh emits it) — without it macOS silently denies
+  CoreBluetooth. Test BLE only via a `.app` launch (`open -n app --args x.tcl`);
+  the bare binary has no app-bundle TCC identity and is always denied.
 
 Not done (see [TODO.md](TODO.md)):
-- The ~60 C extensions ("batteries") are **not** ported to Tcl 9 — the bulk of the
-  remaining work.
-- No autoconf build, no notarized packaging, no assets/battery bundling.
-- In-place source edits are not yet captured as patches.
+- ~40 remaining non-demo batteries — an individual-fix tail; see
+  `ext-build/NON-DEMO-BATTERIES.md` for the status and Tcl-9 failure taxonomy.
+- No autoconf build; no notarized packaging/DMG.
+- In-place SDL-backend edits still aren't captured as patches (the extension
+  fixes are, under `ext-build/patches/`).
+
+## 2a. Where the porting knowledge lives
+
+| Doc | Covers |
+|-----|--------|
+| [`PORTING-TCL-DEMOS.md`](PORTING-TCL-DEMOS.md) | Recurring **pure-Tcl** Tcl-9 fixes: version guards (`8.x`→`8.x-`, incl. `vsatisfies`), removed `tk::unsupported::ExposePrivateCommand`, namespace-scoped global array reads, UTF-8 default source encoding, missing tklib |
+| [`ext-build/BUILD-Img.md`](ext-build/BUILD-Img.md) | The coordinated 24-package tkimg build + its gotchas |
+| [`ext-build/NON-DEMO-BATTERIES.md`](ext-build/NON-DEMO-BATTERIES.md) | Non-demo battery status + the **Tcl-9 failure taxonomy** |
+| [`ext-build/buildext.sh`](ext-build/buildext.sh) | The extension build workhorse (see §4a) |
+| [`ext-build/patches/`](ext-build/patches/) | Per-extension Tcl-9 diffs (tls channel, itk Tcl_Size, zint, tkhtml, tkzinc, tkpath, tcludp, memchan) |
+
+## 4a. Building an extension (`ext-build/buildext.sh <name> <src> <0|1 tk>`)
+
+It clean-copies the source and handles the traps that bite nearly every
+AndroWish extension under Tcl 9:
+
+- deletes stale **prebuilt iOS `.dylib`s** shipped in the sources (else a failed
+  build leaves one and dlopen says "incompatible platform");
+- `-mmacosx-version-min=11.0` pins the Mach-O platform to macOS;
+- rewrites version guards `"8.x"` → `"8.5-"` **recursively** (`src/`,
+  `generated/`, not just `generic/`), for any interp arg name (critcl emits
+  `ip`), tolerating whitespace (`Tcl_InitStubs (interp, …)`), and for
+  `Tcl_PkgRequire`/`…Ex` as well as `*_InitStubs`;
+- rewrites string-based `Tk_ConfigureWidget(` → the wish's
+  `Uw_TkConfigureWidgetStr` shim (Tk 9 made it object-based);
+- puts Tcl 9.1 `generic` + `libtommath` first in the include path and strips
+  `-I/usr/local/include` (a stale 8.x `tcl.h` there shadows everything);
+- strips `-lX11` (extensions must bind the wish's SDL X emulation);
+- prefers the TEA `binaries` target so a docs target needing `doctools` doesn't
+  fail the build.
+
+**Two things buildext can't do for you:**
+1. The **pkgIndex load prefix must match the init symbol's exact case** —
+   `Parse_args_Init` → prefix `Parse_args` (not `parse_args`).
+2. Companion **`.tcl`** files carry their own `package require Tcl 8.x` guards —
+   patch those in the assembled battery.
 
 ## 3. Prerequisites / sources (nothing is vendored here)
 

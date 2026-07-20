@@ -4,14 +4,12 @@ A work-in-progress port of **undroidwish** — the SDL2-based, batteries-include
 `wish` from [AndroWish](https://www.androwish.org/) — to **Tcl/Tk 9.1b0**,
 built **natively for Apple Silicon (arm64)** on macOS.
 
-> **Status: working proof-of-concept.** A bare `undroidwish91` 9.1 builds, links, and
-> runs natively on arm64 — it initializes Tk, creates widgets, and renders a full
-> window on screen through the SDL2 backend. The ~60 bundled extensions
-> ("batteries") have **not** yet been ported to Tcl 9. See [TODO.md](TODO.md).
-
-Verified end-to-end: `package require Tk` → `9.1b0`, `tk windowingsystem` → `x11`,
-and a window with a label, button, entry, checkbutton, and scale renders correctly
-on a Retina display and exits cleanly.
+> **Status: all 17 bare-launch demos work.** `undroidwish91` builds and runs
+> natively on arm64 as a self-contained `.app`, reproducing undroidwish's bare
+> launch (console + Tk window + **Demos ▸** menu), and **every one of the 17
+> demos is enabled and working** — including the extension-heavy ones (Img,
+> tkchat, helpviewer, zinc-widget, tkpdemo, vncviewer, tksqlite, …).
+> 21 C-extension stacks are ported to Tcl 9.1. See [TODO.md](TODO.md).
 
 ## What this is
 
@@ -39,14 +37,28 @@ It is the Tcl/Tk-9.1 sibling of the existing 8.6 recipe repo,
 - Fonts are discovered (system fonts + bundled DejaVu) and rendered via FreeType.
 - **Bare launch matches undroidwish**: `open undroidwish91.app` (no script) shows
   the main window **and** a Tk console, and installs a **Demos** submenu on the
-  console's File menu (via the bundled [`main.tcl`](main.tcl)). The Tk `widget`
-  demo runs; the extension-backed demos are present but disabled until the
-  batteries are ported. Passing a script (`open … --args foo.tcl`) skips all this.
+  console's File menu (via the bundled [`main.tcl`](main.tcl)). Passing a script
+  (`open … --args foo.tcl`) skips all this.
+- **All 17 demos**: widget, tkcon, tkinspect, notebook, tksqlite, stardom,
+  tktable, treectrl, tkchat, zint, imgdemo, borgdemo, bledemo, helpviewer,
+  zinc-widget, tkpdemo, vncviewer.
+- **Extensions ported to Tcl 9.1** (21 stacks): sqlite3, tdom, Tktable,
+  treectrl, tls, itcl+itk (+iwidgets), borg, zint, tkhtml, **Img/tkimg
+  (24 dylibs)**, Tkzinc, tkpath, tkvnc — plus the non-demo batteries
+  parse_args, pikchr, parser, tksvg, tclcsv, vfs, udp, Memchan.
+- **Bluetooth** (the `ble` battery / bledemo) scans and finds real devices.
 
 ## What does **not** work yet
 
-- **The extensions ("batteries")** — Img, tls, tdom, BLT/tkblt, etc. — are not
-  yet rebuilt against Tcl 9. This is the bulk of the remaining work.
+- **~40 remaining non-demo batteries** (BLT, tclx, nsf, trofs, Rtcl, TclMagick,
+  …) — an individual-fix tail. Status + the Tcl-9 failure taxonomy are in
+  [`ext-build/NON-DEMO-BATTERIES.md`](ext-build/NON-DEMO-BATTERIES.md); several
+  need external libraries (R, VLC, ImageMagick, librdkafka, taglib) that aren't
+  installed.
+- **Not self-contained**: `tls` links Homebrew openssl@3 and `tkpath` links
+  Homebrew cairo.
+- **PNG *write*** crashes inside libpng (read is fine) — see
+  [`ext-build/BUILD-Img.md`](ext-build/BUILD-Img.md).
 - No autoconf integration, no notarized `.app`/DMG yet (built with a direct
   script, see below).
 - Touch-friendly ttk scrollbar sizing is not yet re-wired (uses 9.1 defaults).
@@ -86,6 +98,12 @@ Full step-by-step instructions, dependency locations, and every gotcha are in
 | [`AGENTS.md`](AGENTS.md) | Detailed status + full build recipe + resume notes (for humans and AI) |
 | [`TODO.md`](TODO.md) | Remaining work to reach a shippable build |
 | [`main.tcl`](main.tcl) | Bare-launch boot script (console + Demos menu + window placement) |
+| [`PORTING-TCL-DEMOS.md`](PORTING-TCL-DEMOS.md) | Recurring **pure-Tcl** Tcl-9 fixes (version guards, removed Tk commands, namespace scoping, UTF-8 encoding) |
+| [`ext-build/buildext.sh`](ext-build/buildext.sh) | Extension build workhorse — handles the Tcl-9 traps automatically |
+| [`ext-build/ext-compat91.h`](ext-build/ext-compat91.h) | Force-included compat header (restores removed macros; maps X region API to the wish's exports) |
+| [`ext-build/patches/`](ext-build/patches/) | Per-extension Tcl-9 diffs (tls, itk, zint, tkhtml, tkzinc, tkpath, tcludp, memchan) |
+| [`ext-build/BUILD-Img.md`](ext-build/BUILD-Img.md) | The coordinated 24-package tkimg (Img) build recipe |
+| [`ext-build/NON-DEMO-BATTERIES.md`](ext-build/NON-DEMO-BATTERIES.md) | Non-demo battery status + Tcl-9 failure taxonomy |
 | [`src/`](src/) | New source files authored for the 9.1 port (compat bridges + stubs) |
 | [`patches/`](patches/) | (Reserved) unified diffs of the changes to vendored sources |
 | [`build.sh`](build.sh) | The direct build/link script |
